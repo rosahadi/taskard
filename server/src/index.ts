@@ -7,13 +7,13 @@ import hpp from 'hpp';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
 import rateLimit from 'express-rate-limit';
-import csurf from 'csurf';
 import dotenv from 'dotenv';
 import compression from 'compression';
+import AppError from './utils/appError';
+import userRouter from './routes/auth';
+import passport from './config/passport';
 
 dotenv.config();
-
-import AppError from './utils/appError';
 
 const app = express();
 
@@ -56,19 +56,11 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
+// Initialize passport config
+app.use(passport.initialize());
+
 // Prevent HTTP Parameter Pollution
 app.use(hpp());
-
-// CSRF Protection
-app.use(
-  csurf({
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // Ensures the cookie is only sent over HTTPS in production
-      httpOnly: true, // Prevents access to the cookie from JavaScript, adding an extra layer of protection
-      sameSite: 'strict', // Restricts the cookie to be sent only for same-site requests (helps prevent CSRF)
-    },
-  })
-);
 
 // Middleware to sanitize user input
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -83,9 +75,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // API routes
-app.use('/api/v1', (req, res) => {
-  res.send('API is running');
-});
+app.use('/api/v1/users', userRouter);
 
 // Handle undefined API routes
 app.all('/api/*', (req, res, next) => {
