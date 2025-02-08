@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "start:prod": "NODE_ENV=production node build/server.js"
+    "start:prod": "NODE_ENV=production node dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +24,10 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.0.0",
     "hpp": "^0.2.3",
+    "html-to-text": "^9.0.5",
     "jsdom": "^26.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mailtrap": "^3.4.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
@@ -42,9 +44,11 @@
     "@types/csurf": "^1.11.5",
     "@types/express": "^5.0.0",
     "@types/hpp": "^0.2.6",
+    "@types/html-to-text": "^9.0.4",
     "@types/jsdom": "^21.1.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.1",
+    "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@typescript-eslint/eslint-plugin": "^8.23.0",

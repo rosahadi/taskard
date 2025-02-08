@@ -10,7 +10,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import compression from 'compression';
 import AppError from './utils/appError';
-import userRouter from './routes/auth';
+import userRouter from './routes/user';
 import passport from './config/passport';
 
 dotenv.config();
