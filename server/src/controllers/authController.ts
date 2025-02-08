@@ -49,7 +49,17 @@ export const login = catchAsync(
 
     const { email, password } = parsedData.data;
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await comparePassword(password, user.password))) {
+
+    // Dummy password comparison to prevent timing attacks
+    const fakeHash =
+      '$2a$12$wR.wFj0wWzL.P8Mg1OlTAuFY/U1wN/3X3FZpOq9uFbSkZFPJ5Xh7O';
+
+    if (!user) {
+      await comparePassword(password, fakeHash); // Ensures consistent timing
+      return next(new AppError('Incorrect email or password', 401));
+    }
+
+    if (!(await comparePassword(password, user.password))) {
       return next(new AppError('Incorrect email or password', 401));
     }
 
