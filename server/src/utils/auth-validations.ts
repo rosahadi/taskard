@@ -21,3 +21,4 @@ export const LoginSchema = z.object({
   email: z.string().email({ message: 'Invalid email format' }),
   password: z.string().min(1, { message: 'Incorrect email or password' }),
 });
+feat(validation): add Zod schemas for forgot password and reset password
