@@ -4,12 +4,20 @@ import { PrismaClient, User } from '@prisma/client';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import catchAsync from '../utils/catchAsync';
-import { LoginSchema, registerSchema } from '../utils/auth-validations';
+import {
+  ForgotPasswordSchema,
+  LoginSchema,
+  registerSchema,
+  ResetPasswordSchema,
+} from '../utils/auth-validations';
 import AppError from '../utils/appError';
-import { comparePassword, hashPassword } from '../utils/auth';
+import {
+  comparePassword,
+  generateAndHashToken,
+  hashPassword,
+} from '../utils/auth';
 import { createSendToken } from '../utils/createSendToken';
-import { createVerificationToken } from '../utils/createVerificationToken';
-import { sendVerificationEmail } from '../email/email';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../email/email';
 
 dotenv.config();
 
@@ -38,8 +46,19 @@ export const register = catchAsync(async (req, res, next) => {
   });
 
   // Create verification token and send verification email
-  const verificationToken = await createVerificationToken(newUser.id);
-  await sendVerificationEmail(email, name, verificationToken);
+  const { token, hashedToken } = generateAndHashToken();
+  const verificationExpires = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { id: newUser.id },
+    data: {
+      verificationToken: hashedToken,
+      verificationExpires,
+    },
+  });
+
+  // Send the verification link to the user's email
+  await sendVerificationEmail(email, name, token);
 
   createSendToken(newUser, 201, res);
 });
@@ -57,8 +76,8 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid verification token', 400));
   }
 
+  // Delete the user if verification has expired
   if (user.verificationExpires && user.verificationExpires < new Date()) {
-    // Delete the user if verification has expired
     await prisma.user.delete({
       where: { id: user.id },
     });
@@ -87,8 +106,10 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
 export const login = catchAsync(async (req, res, next) => {
   const parsedData = LoginSchema.safeParse(req.body);
+
   if (!parsedData.success) {
-    return next(new AppError('Invalid email or password', 400));
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
+    return next(new AppError(errorMessages.join(', '), 400));
   }
 
   const { email, password } = parsedData.data;
@@ -103,7 +124,6 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  // Check if email is verified
   if (!user.emailVerified) {
     return next(
       new AppError('Please verify your email before logging in', 401)
@@ -126,6 +146,85 @@ export const logout = (req: Request, res: Response) => {
 
   res.status(200).json({ status: 'success' });
 };
+
+export const forgotPassword = catchAsync(async (req, res, next) => {
+  const parsedData = ForgotPasswordSchema.safeParse(req.body);
+
+  if (!parsedData.success) {
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
+    return next(new AppError(errorMessages.join(', '), 400));
+  }
+
+  const { email } = parsedData.data;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return next(new AppError('No user found with that email address', 404));
+  }
+
+  // Generate and hash password reset token
+  const { token, hashedToken } = generateAndHashToken();
+  const resetExpires = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: resetExpires,
+    },
+  });
+
+  // Send the reset link to the user's email
+  await sendPasswordResetEmail(user.email, user.name, token);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Password reset link sent to email!',
+  });
+});
+
+export const resetPassword = catchAsync(async (req, res, next) => {
+  const parsedData = ResetPasswordSchema.safeParse(req.body);
+
+  if (!parsedData.success) {
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
+    return next(new AppError(errorMessages.join(', '), 400));
+  }
+
+  const { token } = req.params;
+  const { password } = parsedData.data;
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await prisma.user.findFirst({
+    where: {
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { gt: new Date() },
+    },
+  });
+
+  if (!user) {
+    return next(new AppError('Token is invalid or has expired', 400));
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  await prisma.user.update({
+    where: { email: user.email },
+    data: {
+      password: hashedPassword,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Password has been reset successfully',
+  });
+});
 
 export const protect = (req: Request, res: Response, next: NextFunction) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

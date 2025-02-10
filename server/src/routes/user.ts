@@ -8,6 +8,9 @@ userRouter.post('/register', authController.register);
 userRouter.post('/login', authController.login);
 userRouter.get('/verify-email/:token', authController.verifyEmail);
 
+userRouter.post('/forgot-password', authController.forgotPassword);
+userRouter.patch('/reset-password/:token', authController.resetPassword);
+
 userRouter.use(authController.protect);
 
 userRouter.post('/logout', authController.logout);
