@@ -13,6 +13,10 @@ const generateVerificationToken = () => {
 
 export const createVerificationToken = async (userId: number) => {
   const verificationToken = generateVerificationToken();
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(verificationToken)
+    .digest('hex');
   const verificationExpires = new Date(
     Date.now() + VERIFICATION_TOKEN_EXPIRES_IN
   );
@@ -20,7 +24,7 @@ export const createVerificationToken = async (userId: number) => {
   await prisma.user.update({
     where: { id: userId },
     data: {
-      verificationToken,
+      verificationToken: hashedToken,
       verificationExpires,
     },
   });

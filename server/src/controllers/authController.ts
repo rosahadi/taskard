@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { PrismaClient, User } from '@prisma/client';
 import passport from 'passport';
 import dotenv from 'dotenv';
@@ -46,8 +47,10 @@ export const register = catchAsync(async (req, res, next) => {
 export const verifyEmail = catchAsync(async (req, res, next) => {
   const { token } = req.params;
 
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
   const user = await prisma.user.findUnique({
-    where: { verificationToken: token },
+    where: { verificationToken: hashedToken },
   });
 
   if (!user) {
