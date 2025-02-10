@@ -227,15 +227,38 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 });
 
 export const protect = (req: Request, res: Response, next: NextFunction) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  passport.authenticate('jwt', { session: false }, (err: any, user: User) => {
-    if (err || !user) {
-      console.log('Authentication failed:', err);
-      return next(new AppError('You are not logged in! Please log in.', 401));
+  passport.authenticate(
+    'jwt',
+    { session: false },
+    async (err: Error, user: User) => {
+      if (err || !user) {
+        console.log('Authentication failed:', err);
+        return next(new AppError('You are not logged in! Please log in.', 401));
+      }
+
+      // Fetch user from database excluding the password field
+      const safeUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!safeUser) {
+        return next(new AppError('User not found', 404));
+      }
+
+      // Only add the safe user to the req.user
+      req.user = safeUser;
+
+      next();
     }
-    req.user = user;
-    next();
-  })(req, res, next);
+  )(req, res, next);
 };
 
 // Scheduled task to clean up unverified users
