@@ -12,6 +12,7 @@ import compression from 'compression';
 import AppError from './utils/appError';
 import userRouter from './routes/user';
 import passport from './config/passport';
+import { initializeCronJobs } from './utils/cron';
 
 dotenv.config();
 
@@ -73,6 +74,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
   next();
 });
+
+initializeCronJobs();
 
 // API routes
 app.use('/api/v1/users', userRouter);
