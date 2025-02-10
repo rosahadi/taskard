@@ -9,6 +9,7 @@ import {
   LoginSchema,
   registerSchema,
   ResetPasswordSchema,
+  UpdatePasswordSchema,
 } from '../utils/auth-validations';
 import AppError from '../utils/appError';
 import {
@@ -223,6 +224,51 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Password has been reset successfully',
+  });
+});
+
+export const updatePassword = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError('User is not authenticated', 401));
+  }
+
+  // Validate request body
+  const parsedData = UpdatePasswordSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    const errorMessages = parsedData.error.errors.map((err) => err.message);
+    return next(new AppError(errorMessages.join(', '), 400));
+  }
+
+  const { currentPassword, password } = parsedData.data;
+
+  const user = req.user as User;
+
+  // Fetch user with password
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { password: true },
+  });
+
+  if (!dbUser) {
+    return next(new AppError('User not found', 404));
+  }
+
+  // Check if current password is correct
+  const isMatch = await comparePassword(currentPassword, dbUser.password);
+  if (!isMatch) {
+    return next(new AppError('Incorrect current password', 401));
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { password: hashedPassword },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Password updated successfully',
   });
 });
 
