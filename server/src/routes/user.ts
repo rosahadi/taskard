@@ -11,6 +11,10 @@ userRouter.get('/verify-email/:token', authController.verifyEmail);
 userRouter.post('/forgot-password', authController.forgotPassword);
 userRouter.patch('/reset-password/:token', authController.resetPassword);
 
+// OAuth routes
+userRouter.get('/auth/google', authController.googleAuth);
+userRouter.get('/auth/google/callback', authController.googleAuthCallback);
+
 userRouter.use(authController.protect);
 
 userRouter.post('/logout', authController.logout);

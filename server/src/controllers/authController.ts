@@ -19,6 +19,7 @@ import {
 } from '../utils/auth';
 import { createSendToken } from '../utils/createSendToken';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../email/email';
+import currentUser from '../utils/currentUser';
 
 dotenv.config();
 
@@ -103,6 +104,33 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Email verified successfully',
   });
+});
+
+export const googleAuth = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false,
+    state: crypto.randomBytes(32).toString('hex'),
+  })(req, res, next);
+};
+
+export const googleAuthCallback = catchAsync(async (req, res, next) => {
+  passport.authenticate(
+    'google',
+    { session: false },
+    (err: Error, user: User) => {
+      if (err) {
+        return next(new AppError(`Authentication failed: ${err.message}`, 401));
+      }
+
+      if (!user) {
+        return next(new AppError('No user found with these credentials', 401));
+      }
+
+      // Set JWT in cookies
+      createSendToken(user, 200, res);
+    }
+  )(req, res, next);
 });
 
 export const login = catchAsync(async (req, res, next) => {
@@ -218,6 +246,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
       password: hashedPassword,
       passwordResetToken: null,
       passwordResetExpires: null,
+      passwordChangedAt: new Date(),
     },
   });
 
@@ -263,7 +292,7 @@ export const updatePassword = catchAsync(async (req, res, next) => {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { password: hashedPassword },
+    data: { password: hashedPassword, passwordChangedAt: new Date() },
   });
 
   res.status(200).json({
@@ -272,40 +301,35 @@ export const updatePassword = catchAsync(async (req, res, next) => {
   });
 });
 
-export const protect = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate(
-    'jwt',
-    { session: false },
-    async (err: Error, user: User) => {
-      if (err || !user) {
-        console.log('Authentication failed:', err);
-        return next(new AppError('You are not logged in! Please log in.', 401));
-      }
+export const protect = catchAsync(async (req, res, next) => {
+  // Get current user
+  const user = await currentUser(req);
 
-      // Fetch user from database excluding the password field
-      const safeUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          emailVerified: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
+  console.log(user);
 
-      if (!safeUser) {
-        return next(new AppError('User not found', 404));
-      }
+  const safeUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailVerified: true,
+      passwordChangedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 
-      // Only add the safe user to the req.user
-      req.user = safeUser;
+  if (!safeUser) {
+    return next(new AppError('User not found', 404));
+  }
 
-      next();
-    }
-  )(req, res, next);
-};
+  // Only add the safe user
+  req.user = safeUser;
+  res.locals.user = safeUser;
+
+  next();
+});
 
 // Scheduled task to clean up unverified users
 export const cleanupUnverifiedUsers = async () => {
