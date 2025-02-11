@@ -153,6 +153,16 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
+  // Prevent password login for OAuth users
+  if (user.provider && user.providerId) {
+    return next(
+      new AppError(
+        `This email is associated with ${user.provider} login. Please use ${user.provider} to sign in.`,
+        400
+      )
+    );
+  }
+
   if (!user.emailVerified) {
     return next(
       new AppError('Please verify your email before logging in', 401)
