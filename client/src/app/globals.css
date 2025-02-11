@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================= */
+/* LIGHT MODE COLORS (DEFAULT) */
+/* ========================= */
+
+:root {
+  /* ====== GENERAL ====== */
+  --background: #f5f7fa; /* Light Silver Gray */
+  --foreground: #2d3748; /* Dark Charcoal */
+  --border: #e2e8f0; /* Light Silver Gray */
+  --muted-text: #718096; /* Soft Gray */
+  --link-color: #3182ce; /* Bright Blue */
+  --highlight: #f6e05e; /* Yellow Highlight */
+
+  /* ====== TEXT COLORS ====== */
+  --text-primary: #2d3748; /* Dark Charcoal */
+  --text-secondary: #4a5568; /* Medium Gray */
+  --text-muted: #718096; /* Soft Gray */
+  --text-error: #e53e3e; /* Red */
+  --text-success: #38a169; /* Green */
+  --text-warning: #d69e2e; /* Yellow */
+  --text-info: #805ad5; /* Purple */
+
+  /* ====== CARDS & ELEMENTS ====== */
+  --card-bg: #ffffff; /* White */
+  --card-border: #e2e8f0; /* Light Silver */
+  --card-shadow: rgba(0, 0, 0, 0.1); /* Soft Black */
+
+  /* ====== PRIMARY COLORS ====== */
+  --primary: #3182ce; /* Bright Blue */
+  --secondary: #63b3ed; /* Light Blue */
+  --tertiary: #90cdf4; /* Pale Blue */
+
+  /* ====== STATUS COLORS ====== */
+  --status-danger: #e53e3e; /* Red */
+  --status-warning: #d69e2e; /* Yellow */
+  --status-success: #38a169; /* Green */
+  --status-info: #805ad5; /* Purple */
+
+  /* ====== PRIORITY COLORS ====== */
+  --priority-low: #90cdf4; /* Pale Blue */
+  --priority-medium: #f6ad55; /* Light Orange */
+  --priority-high: #e53e3e; /* Red */
+  --priority-urgent: #805ad5; /* Purple */
+
+  /* ====== BOARD & TABLE STATUS COLORS ====== */
+  --status-todo: #63b3ed; /* Light Blue */
+  --status-inprogress: #f6e05e; /* Yellow */
+  --status-done: #68d391; /* Green */
+  --status-blocked: #fc8181; /* Light Red */
+
+  /* ====== BUTTONS ====== */
+  --button-bg: #3182ce; /* Bright Blue */
+  --button-hover: #2b6cb0; /* Darker Blue */
+  --button-text: #ffffff; /* White */
+}
+
+/* ========================= */
+/* DARK MODE COLORS */
+/* ========================= */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ====== GENERAL ====== */
+    --background: #1a202c; /* Dark Charcoal */
+    --foreground: #e2e8f0; /* Light Silver */
+    --border: #4a5568; /* Cool Gray */
+    --muted-text: #a0aec0; /* Medium Silver Gray */
+    --link-color: #90cdf4; /* Pale Blue */
+    --highlight: #d69e2e; /* Yellow */
+
+    /* ====== TEXT COLORS ====== */
+    --text-primary: #e2e8f0; /* Light Silver */
+    --text-secondary: #cbd5e0; /* Pale Silver */
+    --text-muted: #a0aec0; /* Medium Silver Gray */
+    --text-error: #fc8181; /* Light Red */
+    --text-success: #68d391; /* Light Green */
+    --text-warning: #f6ad55; /* Light Orange */
+    --text-info: #b794f4; /* Light Purple */
+
+    /* ====== CARDS & ELEMENTS ====== */
+    --card-bg: #2d3748; /* Medium Charcoal */
+    --card-border: #4a5568; /* Cool Gray */
+    --card-shadow: rgba(0, 0, 0, 0.3); /* Dark Black */
+
+    /* ====== PRIMARY COLORS ====== */
+    --primary: #63b3ed; /* Light Blue */
+    --secondary: #90cdf4; /* Pale Blue */
+    --tertiary: #3182ce; /* Bright Blue */
+
+    /* ====== STATUS COLORS ====== */
+    --status-danger: #fc8181; /* Light Red */
+    --status-warning: #f6ad55; /* Light Orange */
+    --status-success: #68d391; /* Light Green */
+    --status-info: #b794f4; /* Light Purple */
+
+    /* ====== PRIORITY COLORS ====== */
+    --priority-low: #63b3ed; /* Light Blue */
+    --priority-medium: #f6ad55; /* Light Orange */
+    --priority-high: #e53e3e; /* Red */
+    --priority-urgent: #b794f4; /* Light Purple */
+
+    /* ====== BOARD & TABLE STATUS COLORS ====== */
+    --status-todo: #90cdf4; /* Pale Blue */
+    --status-inprogress: #f6e05e; /* Yellow */
+    --status-done: #38a169; /* Green */
+    --status-blocked: #e53e3e; /* Red */
+
+    /* ====== BUTTONS ====== */
+    --button-bg: #63b3ed; /* Light Blue */
+    --button-hover: #4299e1; /* Darker Blue */
+    --button-text: #171717; /* Black */
+  }
+}
+
+/* ========================= */
+/* BASE STYLES */
+/* ========================= */
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ========================= */
+/*  USING TAILWIND CLASSES */
+/* ========================= */
+
+@layer components {
+  /* text styles */
+  .text-primary {
+    @apply text-[var(--text-primary)];
+  }
+
+  .text-secondary {
+    @apply text-[var(--text-secondary)];
+  }
+
+  .text-muted {
+    @apply text-[var(--text-muted)];
+  }
+
+  .text-error {
+    @apply text-[var(--text-error)];
+  }
+
+  .text-success {
+    @apply text-[var(--text-success)];
+  }
+
+  .text-warning {
+    @apply text-[var(--text-warning)];
+  }
+
+  .text-info {
+    @apply text-[var(--text-info)];
+  }
+
+  /*  container */
+  .example-container {
+    @apply bg-[var(--background)] text-[var(--foreground)] border-[var(--border)] shadow-md p-4;
+  }
+
+  /*  button */
+  .button-primary {
+    @apply bg-[var(--button-bg)] hover:bg-[var(--button-hover)] text-[var(--button-text)] px-4 py-2 rounded;
+  }
+
+  /*  card */
+  .card {
+    @apply bg-[var(--card-bg)] border-[var(--card-border)] shadow-lg p-4 rounded-lg;
+  }
+
+  /*  board status colors */
+  .status-todo {
+    @apply bg-[var(--status-todo)] text-[var(--foreground)] px-3 py-1 rounded;
+  }
+
+  .status-inprogress {
+    @apply bg-[var(--status-inprogress)] text-[var(--foreground)] px-3 py-1 rounded;
+  }
+
+  .status-done {
+    @apply bg-[var(--status-done)] text-[var(--foreground)] px-3 py-1 rounded;
+  }
+
+  .status-blocked {
+    @apply bg-[var(--status-blocked)] text-[var(--foreground)] px-3 py-1 rounded;
+  }
+}
