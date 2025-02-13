@@ -208,7 +208,7 @@ body {
   }
 
   .card-centered {
-    @apply flex items-center justify-center py-[20px] min-h-[calc(100vh-68px)];
+    @apply flex items-center justify-center  min-h-svh pt-[68px];
   }
 
   /*  board status colors */
