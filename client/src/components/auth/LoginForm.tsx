@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -23,13 +23,15 @@ import { useAppDispatch } from '@/app/redux';
 import { useLoginMutation } from '@/store/authApi';
 import { useGetMeQuery } from '@/store/userApi';
 import { setCredentials } from '@/store/authSlice';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 
 type FormValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [login, { isLoading: isLoginLoading, error: loginError }] =
+    useLoginMutation();
   const { refetch: refetchMe } = useGetMeQuery();
 
   const form = useForm<FormValues>({
@@ -40,10 +42,15 @@ const LoginForm = () => {
     },
   });
 
+  const [backendError, setBackendError] = useState<string | null>(null);
+
   const onSubmit = async (data: FormValues) => {
     try {
       const response = await login(data).unwrap();
       console.log('Login Response:', response);
+      if (!response) {
+        console.log('Login Response:', loginError);
+      }
 
       const { data: userData, error } = await refetchMe();
 
@@ -55,8 +62,16 @@ const LoginForm = () => {
 
         router.push('/');
       }
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch {
+      if (loginError && 'data' in loginError) {
+        const { data } = loginError as FetchBaseQueryError;
+
+        if (data) {
+          setBackendError((data as { message: string }).message);
+        } else {
+          setBackendError('An unexpected error occurred');
+        }
+      }
     }
   };
 
@@ -98,12 +113,19 @@ const LoginForm = () => {
           />
           <div className="flex justify-start">
             <Link
-              href="/forgot-password"
+              href="/auth/forgot-password"
               className="text-sm text-primary hover:underline"
             >
               Forgot password?
             </Link>
           </div>
+
+          {/* Display backend error message */}
+          {backendError && (
+            <FormMessage className="text-red-500 text-sm mt-2">
+              {backendError}
+            </FormMessage>
+          )}
 
           <div className="pt-2">
             <Button
