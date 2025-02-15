@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,10 +18,14 @@ import SocialAuth from './SocialAuth';
 import AuthCard from './AuthCard';
 import { signupSchema } from '@/schemas/auth';
 import { Info } from 'lucide-react';
+import { useSignupMutation } from '@/store/authApi';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 
 type FormValues = z.infer<typeof signupSchema>;
 
 const SignUpForm = () => {
+  const [signup, { isLoading, error: signupError }] = useSignupMutation();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -31,6 +35,9 @@ const SignUpForm = () => {
       confirmPassword: '',
     },
   });
+
+  const [backendError, setBackendError] = useState<string | null>(null);
+  const [backendMessage, setBackendMessage] = useState<string | null>(null);
 
   const getPasswordErrors = (password: string) => {
     const errors: Set<string> = new Set();
@@ -50,8 +57,28 @@ const SignUpForm = () => {
   const passwordErrors = getPasswordErrors(password);
   const isPasswordTouched = form.formState.touchedFields.password;
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const onSubmit = async (data: FormValues) => {
+    setBackendError(null);
+    setBackendMessage(null);
+
+    try {
+      const response = await signup(data).unwrap();
+      if (response) {
+        setBackendMessage(
+          'A verification email has been sent. Please check your inbox.'
+        );
+      }
+    } catch {
+      if (signupError && 'data' in signupError) {
+        const { data } = signupError as FetchBaseQueryError;
+
+        if (data) {
+          setBackendError((data as { message: string }).message);
+        } else {
+          setBackendError('An unexpected error occurred');
+        }
+      }
+    }
   };
 
   return (
@@ -146,12 +173,21 @@ const SignUpForm = () => {
             )}
           />
 
+          {/* Display backend error message */}
+          {backendError && <FormMessage>{backendError}</FormMessage>}
+
+          {/* BackendMessage */}
+          {backendMessage && (
+            <FormMessage className="text-info">{backendMessage}</FormMessage>
+          )}
+
           <div className="pt-2">
             <Button
               type="submit"
               className="w-full bg-buttonBg hover:bg-buttonHover text-buttonText"
+              disabled={isLoading}
             >
-              Sign up
+              {isLoading ? 'Signing up...' : 'Sign up'}
             </Button>
           </div>
 

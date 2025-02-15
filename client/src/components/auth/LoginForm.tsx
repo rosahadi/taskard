@@ -45,6 +45,7 @@ const LoginForm = () => {
   const [backendError, setBackendError] = useState<string | null>(null);
 
   const onSubmit = async (data: FormValues) => {
+    setBackendError(null);
     try {
       const response = await login(data).unwrap();
       console.log('Login Response:', response);
@@ -79,7 +80,7 @@ const LoginForm = () => {
     <AuthCard
       title="Welcome Back"
       subtitle="Please login in to continue to your account"
-      footerLink="/signup"
+      footerLink="/auth/signup"
       footerText="Don't have an account?"
       footerLinkText="Sign up"
     >
@@ -121,11 +122,7 @@ const LoginForm = () => {
           </div>
 
           {/* Display backend error message */}
-          {backendError && (
-            <FormMessage className="text-red-500 text-sm mt-2">
-              {backendError}
-            </FormMessage>
-          )}
+          {backendError && <FormMessage>{backendError}</FormMessage>}
 
           <div className="pt-2">
             <Button
