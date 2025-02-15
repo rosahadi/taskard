@@ -4,7 +4,7 @@ import * as userController from '../controllers/userController';
 
 const userRouter = express.Router();
 
-userRouter.post('/register', authController.register);
+userRouter.post('/signup', authController.signup);
 userRouter.post('/login', authController.login);
 userRouter.get('/verify-email/:token', authController.verifyEmail);
 
@@ -18,6 +18,8 @@ userRouter.get('/auth/google/callback', authController.googleAuthCallback);
 userRouter.use(authController.protect);
 
 userRouter.post('/logout', authController.logout);
+
+userRouter.get('/me', userController.getMe);
 
 userRouter.patch('/updateMyPassword', authController.updatePassword);
 userRouter.patch('/updateMe', userController.updateMe);

@@ -7,7 +7,7 @@ import catchAsync from '../utils/catchAsync';
 import {
   ForgotPasswordSchema,
   LoginSchema,
-  registerSchema,
+  signupSchema,
   ResetPasswordSchema,
   UpdatePasswordSchema,
 } from '../utils/auth-validations';
@@ -25,8 +25,8 @@ dotenv.config();
 
 const prisma = new PrismaClient();
 
-export const register = catchAsync(async (req, res, next) => {
-  const parsedData = registerSchema.safeParse(req.body);
+export const signup = catchAsync(async (req, res, next) => {
+  const parsedData = signupSchema.safeParse(req.body);
 
   console.log(parsedData.error);
   if (!parsedData.success) {
@@ -84,10 +84,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
       where: { id: user.id },
     });
     return next(
-      new AppError(
-        'Verification token has expired. Please register again.',
-        400
-      )
+      new AppError('Verification token has expired. Please signup again.', 400)
     );
   }
 
@@ -176,7 +173,7 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-export const logout = (req: Request, res: Response) => {
+export const logout = (_req: Request, res: Response) => {
   // Clear the JWT from the cookie
   res.cookie('jwt', '', {
     expires: new Date(0),
@@ -320,7 +317,6 @@ export const protect = catchAsync(async (req, res, next) => {
   const safeUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: {
-      id: true,
       name: true,
       email: true,
       emailVerified: true,

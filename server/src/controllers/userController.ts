@@ -5,6 +5,14 @@ import filterObj from '../utils/filterObj';
 
 const prisma = new PrismaClient();
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const getMe = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: req.user,
+  });
+});
+
 // Update user profile
 export const updateMe = catchAsync(async (req, res, next) => {
   const filteredBody = filterObj(req.body, 'name', 'email');

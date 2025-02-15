@@ -35,7 +35,7 @@ export const sendVerificationEmail = async (
   name: string,
   verificationToken: string
 ) => {
-  const verificationUrl = `${clientURL}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `${clientURL}/auth/verify-email?token=${verificationToken}`;
 
   const emailContent = `
     <div style="font-family: Arial, sans-serif; color: #333;">
@@ -61,7 +61,7 @@ export const sendPasswordResetEmail = async (
   name: string,
   resetToken: string
 ) => {
-  const resetURL = `${clientURL}/reset-password?token=${resetToken}`;
+  const resetURL = `${clientURL}/auth/reset-password?token=${resetToken}`;
 
   const emailContent = `
     <div style="font-family: Arial, sans-serif; color: #333;">
