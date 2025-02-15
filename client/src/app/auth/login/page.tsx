@@ -1,11 +1,7 @@
 import LoginForm from '@/components/auth/LoginForm';
 
 const page = () => {
-  return (
-    <div className="card-centered">
-      <LoginForm />
-    </div>
-  );
+  return <LoginForm />;
 };
 
 export default page;

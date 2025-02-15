@@ -85,7 +85,7 @@ const SignUpForm = () => {
     <AuthCard
       title="Create Account"
       subtitle="Sign up to get started"
-      footerLink="/login"
+      footerLink="/auth/login"
       footerText="Already have an account?"
       footerLinkText="Sign in"
     >
