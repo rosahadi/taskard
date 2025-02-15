@@ -18,10 +18,20 @@ import AuthCard from './AuthCard';
 import SocialAuth from './SocialAuth';
 import { loginSchema } from '@/schemas/auth';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch } from '@/app/redux';
+import { useLoginMutation } from '@/store/authApi';
+import { useGetMeQuery } from '@/store/userApi';
+import { setCredentials } from '@/store/authSlice';
 
 type FormValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const { refetch: refetchMe } = useGetMeQuery();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -30,8 +40,24 @@ const LoginForm = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const onSubmit = async (data: FormValues) => {
+    try {
+      const response = await login(data).unwrap();
+      console.log('Login Response:', response);
+
+      const { data: userData, error } = await refetchMe();
+
+      if (error) throw new Error('Failed to fetch user data');
+
+      if (userData) {
+        // Store the complete user data in Redux
+        dispatch(setCredentials(userData));
+
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   return (
@@ -83,8 +109,9 @@ const LoginForm = () => {
             <Button
               type="submit"
               className="w-full bg-buttonBg hover:bg-buttonHover text-buttonText"
+              disabled={isLoginLoading}
             >
-              Sign in
+              {isLoginLoading ? 'Loading...' : 'Log in'}
             </Button>
           </div>
 
