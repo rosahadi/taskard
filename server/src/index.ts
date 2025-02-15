@@ -15,6 +15,7 @@ import passport from './config/passport';
 import './config/passportGoogle';
 import './config/passport';
 import { initializeCronJobs } from './utils/cron';
+import globalErrorHandler from './controllers/errorController';
 
 dotenv.config();
 
@@ -86,5 +87,7 @@ app.use('/api/v1/users', userRouter);
 app.all('/api/*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
+
+app.use(globalErrorHandler);
 
 export default app;
