@@ -26,6 +26,7 @@ import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 import { authApi } from '@/store/authApi';
 import { userApi } from '@/store/userApi';
 import authReducer from '@/store/authSlice';
+import globalReducer from '@/store/global';
 
 /* REDUX PERSISTENCE */
 const createNoopStorage = () => {
@@ -50,11 +51,12 @@ const storage =
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'],
+  whitelist: ['auth', 'global'],
 };
 
 /* COMBINE REDUCERS */
 const rootReducer = combineReducers({
+  global: globalReducer,
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   auth: authReducer,
