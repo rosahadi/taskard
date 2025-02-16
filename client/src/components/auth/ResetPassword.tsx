@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -17,10 +17,20 @@ import {
 import AuthCard from './AuthCard';
 import { resetPasswordSchema } from '@/schemas/auth';
 import { Info } from 'lucide-react';
+import { useResetPasswordMutation } from '@/store/authApi';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type FormValues = z.infer<typeof resetPasswordSchema>;
 
 const ResetPasswordForm = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
+
+  const [backendError, setBackendError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -48,12 +58,51 @@ const ResetPasswordForm = () => {
   const passwordErrors = getPasswordErrors(password);
   const isPasswordTouched = form.formState.touchedFields.password;
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const [resetPassword, { isLoading: isResetPasswordLoading }] =
+    useResetPasswordMutation();
+
+  const onSubmit = async (data: FormValues) => {
+    if (!token) {
+      setBackendError('Token is missing');
+      return;
+    }
+
+    setBackendError(null);
+    setSuccessMessage(null);
+
+    try {
+      await resetPassword({
+        token: token as string,
+        body: {
+          currentPassword: data.currentPassword,
+          password: data.password,
+        },
+      }).unwrap();
+
+      setSuccessMessage('Password reset successful! You can now login');
+
+      setTimeout(() => {
+        router.push('/auth/login');
+      }, 3000);
+    } catch (error) {
+      const { data } = error as FetchBaseQueryError;
+
+      if (data) {
+        setBackendError((data as { message: string }).message);
+      } else {
+        setBackendError('An unexpected error occurred');
+      }
+    }
   };
 
   return (
-    <AuthCard title="Reset Password" subtitle="Enter your new password">
+    <AuthCard
+      title="Reset Password"
+      subtitle="Enter your new password"
+      footerLink="/auth/login"
+      footerText="Already have an account?"
+      footerLinkText="Sign in"
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -112,12 +161,23 @@ const ResetPasswordForm = () => {
             )}
           />
 
+          {/* Display backend error message */}
+          {backendError && <FormMessage>{backendError}</FormMessage>}
+
+          {/* Display success message */}
+          {successMessage && (
+            <FormMessage className="text-textSuccess">
+              {successMessage}
+            </FormMessage>
+          )}
+
           <div className="pt-2">
             <Button
               type="submit"
               className="w-full bg-buttonBg hover:bg-buttonHover text-buttonText"
+              disabled={isResetPasswordLoading}
             >
-              Reset Password
+              {isResetPasswordLoading ? 'Loading...' : 'Reset Password'}
             </Button>
           </div>
         </form>

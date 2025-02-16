@@ -1,5 +1,7 @@
+import ResetPasswordForm from '@/components/auth/ResetPassword';
+
 const page = () => {
-  return <div></div>;
+  return <ResetPasswordForm />;
 };
 
 export default page;
