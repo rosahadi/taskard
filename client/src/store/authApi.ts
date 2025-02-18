@@ -114,11 +114,22 @@ export const authApi = createApi({
       invalidatesTags: ['Auth'],
     }),
 
-    googleAuth: builder.mutation<void, void>({
+    googleAuth: builder.mutation<AuthUser, void>({
       query: () => ({
         url: '/auth/google',
         method: 'GET',
+        credentials: 'include',
       }),
+      invalidatesTags: ['Auth'],
+    }),
+
+    googleAuthCallback: builder.mutation<AuthUser, string>({
+      query: (code) => ({
+        url: `/auth/google/callback?code=${code}`,
+        method: 'GET',
+        credentials: 'include',
+      }),
+      invalidatesTags: ['Auth'],
     }),
   }),
 });
@@ -133,4 +144,5 @@ export const {
   useUpdatePasswordMutation,
   useVerifyEmailMutation,
   useGoogleAuthMutation,
+  useGoogleAuthCallbackMutation,
 } = authApi;
