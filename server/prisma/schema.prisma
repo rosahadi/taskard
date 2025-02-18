@@ -13,21 +13,74 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  MEMBER
+}
+
 model User {
   id                   Int       @id @default(autoincrement())
   email                String    @unique
   name                 String
-  password             String   
+  password             String
   passwordChangedAt    DateTime?
   emailVerified        Boolean   @default(false)
   verificationToken    String?   @unique
   verificationExpires  DateTime?
   passwordResetToken   String?   @unique
   passwordResetExpires DateTime?
-  provider            String?   
-  providerId          String?    
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  provider             String?
+  providerId           String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  ownedWorkspaces      Workspace[]       @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
 
   @@unique([provider, providerId])
+}
+
+model Workspace {
+  id        Int               @id @default(autoincrement())
+  name      String
+  image     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  members   WorkspaceMember[]
+
+  // Owner relationship
+  ownerId         Int
+  owner           User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  WorkspaceInvite WorkspaceInvite[]
+
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  id       Int      @id @default(autoincrement())
+  role     Role     @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  // Relationships
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  workspaceId Int
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([userId, workspaceId])
+  @@index([userId])
+  @@index([workspaceId])
+}
+
+model WorkspaceInvite {
+  id        Int      @id @default(autoincrement())
+  email     String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+
+  // Relationships
+  workspaceId Int
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([email, workspaceId])
 }
