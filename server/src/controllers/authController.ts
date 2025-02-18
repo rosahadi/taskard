@@ -107,7 +107,6 @@ export const googleAuth = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     session: false,
-    state: crypto.randomBytes(32).toString('hex'),
   })(req, res, next);
 };
 
