@@ -10,7 +10,7 @@ import {
   signupSchema,
   ResetPasswordSchema,
   UpdatePasswordSchema,
-} from '../utils/auth-validations';
+} from '../schemas/auth';
 import AppError from '../utils/appError';
 import {
   comparePassword,
