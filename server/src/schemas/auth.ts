@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 export const signupSchema = z.object({
   name: z.string().min(1, { message: 'Name is required' }),
-  email: z.string().email({ message: 'Invalid email format' }),
+  email: z
+    .string()
+    .email({ message: 'Invalid email format' })
+    .trim()
+    .toLowerCase(),
   password: z
     .string()
     .min(10, { message: 'Password must be at least 10 characters long' })
@@ -18,12 +22,20 @@ export const signupSchema = z.object({
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format' }),
+  email: z
+    .string()
+    .email({ message: 'Invalid email format' })
+    .trim()
+    .toLowerCase(),
   password: z.string().min(1, { message: 'Incorrect email or password' }),
 });
 
 export const ForgotPasswordSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format' }),
+  email: z
+    .string()
+    .email({ message: 'Invalid email format' })
+    .trim()
+    .toLowerCase(),
 });
 
 export const ResetPasswordSchema = z.object({
