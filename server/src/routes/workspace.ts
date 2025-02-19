@@ -6,6 +6,11 @@ const workspaceRouter = express.Router();
 
 workspaceRouter.use(authController.protect);
 
-workspaceRouter.post('/workspace', workspaceController.createWorkspace);
+workspaceRouter
+  .route('/')
+  .post(workspaceController.createWorkspace)
+  .get(workspaceController.getAllWorkspaces);
+
+workspaceRouter.get('/:id', workspaceController.getWorkspace);
 
 export default workspaceRouter;
