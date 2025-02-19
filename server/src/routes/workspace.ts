@@ -1,6 +1,7 @@
 import express from 'express';
 import * as authController from '../controllers/authController';
 import * as workspaceController from '../controllers/workspaceController';
+import * as inviteWorkspaceMemberController from '../controllers/inviteWorkspaceMemberController';
 
 const workspaceRouter = express.Router();
 
@@ -16,5 +17,10 @@ workspaceRouter
   .get(workspaceController.getWorkspace)
   .patch(workspaceController.updateWorkspace)
   .delete(workspaceController.deleteWorkspace);
+
+workspaceRouter.post(
+  '/:id/invites',
+  inviteWorkspaceMemberController.inviteWorkspaceMember
+);
 
 export default workspaceRouter;

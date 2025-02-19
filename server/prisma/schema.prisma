@@ -76,11 +76,16 @@ model WorkspaceInvite {
   id        Int      @id @default(autoincrement())
   email     String
   role      Role     @default(MEMBER)
+  token     String   @unique
+  expires   DateTime
   createdAt DateTime @default(now())
+  invitedBy Int 
 
   // Relationships
   workspaceId Int
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@unique([email, workspaceId])
+  @@index([token])
+  @@index([workspaceId])
 }

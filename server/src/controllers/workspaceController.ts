@@ -164,7 +164,6 @@ export const updateWorkspace = catchAsync(async (req, res, next) => {
       role: Role.ADMIN,
     },
   });
-
   const isOwner = await prisma.workspace.findFirst({
     where: {
       id: parseInt(id),

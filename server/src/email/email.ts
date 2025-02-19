@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
+import { Role } from '@prisma/client';
 
 dotenv.config();
 
@@ -78,6 +79,43 @@ export const sendPasswordResetEmail = async (
   await sendEmail({
     to: email,
     subject: 'Password Reset Request',
+    html: emailContent,
+  });
+};
+
+export const sendWorkspaceInviteEmail = async (
+  email: string,
+  inviterName: string,
+  workspaceName: string,
+  inviteToken: string,
+  workspaceId: number,
+  role: Role
+) => {
+  const inviteUrl = `${clientURL}/workspaces/${workspaceId}/join?token=${inviteToken}`;
+
+  const roleDisplay = role === Role.ADMIN ? 'Admin' : 'Member';
+
+  const emailContent = `
+    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+      <h2>Workspace Invitation</h2>
+      <p>Hello,</p>
+      <p><strong>${inviterName}</strong> has invited you to join the workspace <strong>${workspaceName}</strong> as a ${roleDisplay}.</p>
+      
+      <div style="margin: 25px 0;">
+        <a href="${inviteUrl}" style="background-color: rgb(76, 120, 175); color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+          Accept Invitation
+        </a>
+      </div>
+      
+      <p>This invitation will expire in 7 days.</p>
+      <p>If you don't have an account yet, you'll need to create one to join the workspace.</p>
+      <p>Best,<br>Taskard Team</p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: `Invitation to join ${workspaceName}`,
     html: emailContent,
   });
 };
