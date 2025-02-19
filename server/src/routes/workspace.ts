@@ -11,6 +11,9 @@ workspaceRouter
   .post(workspaceController.createWorkspace)
   .get(workspaceController.getAllWorkspaces);
 
-workspaceRouter.get('/:id', workspaceController.getWorkspace);
+workspaceRouter
+  .route('/:id')
+  .get(workspaceController.getWorkspace)
+  .patch(workspaceController.updateWorkspace);
 
 export default workspaceRouter;
