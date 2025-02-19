@@ -14,6 +14,7 @@ workspaceRouter
 workspaceRouter
   .route('/:id')
   .get(workspaceController.getWorkspace)
-  .patch(workspaceController.updateWorkspace);
+  .patch(workspaceController.updateWorkspace)
+  .delete(workspaceController.deleteWorkspace);
 
 export default workspaceRouter;

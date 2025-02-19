@@ -200,3 +200,42 @@ export const updateWorkspace = catchAsync(async (req, res, next) => {
     data: workspace,
   });
 });
+
+// Delete workspace
+export const deleteWorkspace = catchAsync(async (req, res, next) => {
+  const user = await currentUser(req);
+  const { id } = req.params;
+
+  // Only owner can delete workspace
+  const workspace = await prisma.workspace.findFirst({
+    where: {
+      id: parseInt(id),
+      ownerId: user.id,
+    },
+  });
+
+  if (!workspace) {
+    return next(
+      new AppError('Workspace not found or you are not the owner', 404)
+    );
+  }
+
+  // Delete all members
+  await prisma.workspaceMember.deleteMany({
+    where: {
+      workspaceId: parseInt(id),
+    },
+  });
+
+  // Delete workspace
+  await prisma.workspace.delete({
+    where: {
+      id: parseInt(id),
+    },
+  });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
