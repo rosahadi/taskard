@@ -27,6 +27,7 @@ import { authApi } from '@/store/authApi';
 import { userApi } from '@/store/userApi';
 import authReducer from '@/store/authSlice';
 import globalReducer from '@/store/global';
+import workspaceReducer from '@/store/workspaceSlice';
 import { workspaceApi } from '@/store/workspaceApi';
 
 /* REDUX PERSISTENCE */
@@ -52,12 +53,13 @@ const storage =
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'global'],
+  whitelist: ['auth', 'global', 'workspace'],
 };
 
 /* COMBINE REDUCERS */
 const rootReducer = combineReducers({
   global: globalReducer,
+  workspace: workspaceReducer,
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [workspaceApi.reducerPath]: workspaceApi.reducer,
