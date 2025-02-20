@@ -26,7 +26,6 @@ export interface WorkspaceMember {
 export enum Role {
   ADMIN = 'ADMIN',
   MEMBER = 'MEMBER',
-  VIEWER = 'VIEWER',
 }
 
 export interface CreateWorkspaceRequest {
