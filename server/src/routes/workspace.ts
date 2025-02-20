@@ -22,5 +22,9 @@ workspaceRouter.post(
   '/:id/invites',
   inviteWorkspaceMemberController.inviteWorkspaceMember
 );
+workspaceRouter.get(
+  '/:workspaceId/join/:token',
+  inviteWorkspaceMemberController.acceptWorkspaceInvitation
+);
 
 export default workspaceRouter;

@@ -1,4 +1,5 @@
 import { PrismaClient, Role } from '@prisma/client';
+import crypto from 'crypto';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
@@ -121,5 +122,50 @@ export const inviteWorkspaceMember = catchAsync(async (req, res, next) => {
       email: invite.email,
       role: invite.role,
     },
+  });
+});
+
+// Accept workspace invitation
+export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
+  const user = await currentUser(req);
+  const { token, id } = req.params;
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Find invitation
+  const invite = await prisma.workspaceInvite.findFirst({
+    where: {
+      token: tokenHash,
+      workspaceId: parseInt(id),
+      expires: { gt: new Date() },
+    },
+  });
+
+  if (!invite) {
+    return next(new AppError('Invalid or expired invitation', 400));
+  }
+
+  if (invite.email !== user.email) {
+    return next(
+      new AppError('This invitation was sent to a different email address', 403)
+    );
+  }
+
+  // Add user to workspace
+  await prisma.workspaceMember.create({
+    data: {
+      userId: user.id,
+      workspaceId: parseInt(id),
+      role: invite.role,
+    },
+  });
+
+  // Delete invitation
+  await prisma.workspaceInvite.delete({
+    where: { id: invite.id },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'You have successfully joined the workspace',
   });
 });
