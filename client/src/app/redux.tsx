@@ -27,6 +27,7 @@ import { authApi } from '@/store/authApi';
 import { userApi } from '@/store/userApi';
 import authReducer from '@/store/authSlice';
 import globalReducer from '@/store/global';
+import { workspaceApi } from '@/store/workspaceApi';
 
 /* REDUX PERSISTENCE */
 const createNoopStorage = () => {
@@ -59,6 +60,7 @@ const rootReducer = combineReducers({
   global: globalReducer,
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
+  [workspaceApi.reducerPath]: workspaceApi.reducer,
   auth: authReducer,
 });
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -72,7 +74,11 @@ export const makeStore = () => {
         serializableCheck: {
           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
-      }).concat(authApi.middleware, userApi.middleware),
+      }).concat(
+        authApi.middleware,
+        userApi.middleware,
+        workspaceApi.middleware
+      ),
   });
 };
 
