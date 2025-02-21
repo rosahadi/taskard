@@ -7,7 +7,13 @@ const WorkspaceAvatar = ({ name, image }: { name: string; image?: string }) => {
   if (image) {
     return (
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[--background-tertiary] overflow-hidden">
-        <Image src={image} alt={name} className="w-full h-full object-cover" />
+        <Image
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover"
+          width={96}
+          height={96}
+        />
       </div>
     );
   }

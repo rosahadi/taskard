@@ -28,11 +28,6 @@ export enum Role {
   MEMBER = 'MEMBER',
 }
 
-export interface CreateWorkspaceRequest {
-  name: string;
-  image?: string;
-}
-
 export interface UpdateWorkspaceRequest {
   name?: string;
   image?: string;
@@ -60,12 +55,12 @@ export const workspaceApi = createApi({
     // Workspace endpoints
     createWorkspace: builder.mutation<
       { status: string; data: Workspace },
-      CreateWorkspaceRequest
+      FormData
     >({
-      query: (workspace) => ({
+      query: (formData) => ({
         url: '/',
         method: 'POST',
-        body: workspace,
+        body: formData,
       }),
       invalidatesTags: ['Workspace'],
     }),

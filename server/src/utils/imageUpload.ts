@@ -111,7 +111,9 @@ const handleImageUpload = catchAsync(
 const uploadErrorHandler = (
   err: Error | AppError,
   req: Request,
-  res: Response
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
 ): void => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -127,6 +129,13 @@ const uploadErrorHandler = (
   res.status(statusCode).json({
     status: 'error',
     message: err.message || 'An unexpected error occurred during upload',
+    details:
+      process.env.NODE_ENV === 'development'
+        ? {
+            error: err,
+            stack: err.stack,
+          }
+        : undefined,
   });
 };
 

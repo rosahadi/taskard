@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '@/app/redux';
 import { setActiveWorkspace } from '@/store/workspaceSlice';
 import {
   useGetAllWorkspacesQuery,
-  useCreateWorkspaceMutation,
   useUpdateWorkspaceMutation,
   useInviteWorkspaceMemberMutation,
   Workspace,
@@ -16,15 +15,15 @@ import CreateWorkspaceModal from './CreateWorkspaceModal';
 import WorkspaceSettingsModal from './WorkspaceSettingsModal';
 import InvitePeopleModal from './InvitePeopleModal';
 import WorkspaceDropdown from './WorkspaceDropdown';
+import { useToast } from '@/hooks/use-toast';
 
 const WorkspaceHeader = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
 
   // API Hooks
   const { data: workspacesResponse, isLoading } = useGetAllWorkspacesQuery();
-  const [createWorkspace, { isLoading: isCreating }] =
-    useCreateWorkspaceMutation();
   const [updateWorkspace, { isLoading: isUpdating }] =
     useUpdateWorkspaceMutation();
   const [inviteWorkspaceMember, { isLoading: isInviting }] =
@@ -43,7 +42,7 @@ const WorkspaceHeader = () => {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-  // Form states
+  // Form states for other modals
   const [workspaceName, setWorkspaceName] = useState('');
   const [workspaceImage, setWorkspaceImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -54,29 +53,6 @@ const WorkspaceHeader = () => {
   const handleWorkspaceSelect = (workspace: Workspace) => {
     dispatch(setActiveWorkspace(workspace.id));
     router.push(`/workspaces/${workspace.id}`);
-  };
-
-  // Handle workspace creation
-  const handleCreateWorkspace = async () => {
-    try {
-      const result = await createWorkspace({
-        name: workspaceName.trim(),
-        image: workspaceImage || undefined,
-      }).unwrap();
-
-      if (result.data) {
-        dispatch(setActiveWorkspace(result.data.id));
-        router.push(`/workspaces/${result.data.id}`);
-      }
-
-      // Reset form
-      setWorkspaceName('');
-      setWorkspaceImage(null);
-      setImagePreview(null);
-      setCreateModalOpen(false);
-    } catch (error) {
-      console.error('Failed to create workspace:', error);
-    }
   };
 
   // Handle workspace update
@@ -92,9 +68,18 @@ const WorkspaceHeader = () => {
         },
       }).unwrap();
 
+      toast({
+        title: 'Success',
+        description: 'Workspace updated successfully',
+      });
       setSettingsModalOpen(false);
     } catch (error) {
       console.error('Failed to update workspace:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update workspace. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -112,10 +97,19 @@ const WorkspaceHeader = () => {
         },
       }).unwrap();
 
+      toast({
+        title: 'Invitation Sent',
+        description: `Invitation sent to ${inviteEmail.trim()}`,
+      });
       setInviteEmail('');
       setInviteModalOpen(false);
     } catch (error) {
       console.error('Failed to invite:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send invitation. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -151,14 +145,6 @@ const WorkspaceHeader = () => {
       <CreateWorkspaceModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSubmit={handleCreateWorkspace}
-        workspaceName={workspaceName}
-        setWorkspaceName={setWorkspaceName}
-        workspaceImage={workspaceImage}
-        setWorkspaceImage={setWorkspaceImage}
-        imagePreview={imagePreview}
-        setImagePreview={setImagePreview}
-        isCreating={isCreating}
       />
 
       <WorkspaceSettingsModal
