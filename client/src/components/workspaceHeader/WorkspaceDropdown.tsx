@@ -90,19 +90,23 @@ const WorkspaceDropdown = ({
             <div className="px-6 py-2 text-sm text-[--text-muted]">
               Switch Workspaces
             </div>
-            {otherWorkspaces.map((workspace) => (
-              <DropdownMenuItem
-                key={workspace.id}
-                className="px-6 py-2 hover:bg-[--background-tertiary] flex items-center gap-3"
-                onClick={() => handleWorkspaceSelect(workspace)}
-              >
-                <WorkspaceAvatar
-                  name={workspace.name}
-                  image={workspace.image}
-                />
-                <span>{workspace.name}</span>
-              </DropdownMenuItem>
-            ))}
+            <div className="max-h-60 overflow-y-auto">
+              {' '}
+              {/* Make this section scrollable */}
+              {otherWorkspaces.map((workspace) => (
+                <DropdownMenuItem
+                  key={workspace.id}
+                  className="px-6 py-2 hover:bg-[--background-tertiary] flex items-center gap-3"
+                  onClick={() => handleWorkspaceSelect(workspace)}
+                >
+                  <WorkspaceAvatar
+                    name={workspace.name}
+                    image={workspace.image}
+                  />
+                  <span>{workspace.name}</span>
+                </DropdownMenuItem>
+              ))}
+            </div>
             <DropdownMenuSeparator className="bg-[--border]" />
           </>
         )}
