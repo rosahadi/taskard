@@ -28,7 +28,6 @@ const prisma = new PrismaClient();
 export const signup = catchAsync(async (req, res, next) => {
   const parsedData = signupSchema.safeParse(req.body);
 
-  console.log(parsedData.error);
   if (!parsedData.success) {
     const errorMessages = parsedData.error.errors.map((err) => err.message);
     return next(new AppError(errorMessages.join(', '), 400));
@@ -310,8 +309,6 @@ export const updatePassword = catchAsync(async (req, res, next) => {
 export const protect = catchAsync(async (req, res, next) => {
   // Get current user
   const user = await currentUser(req);
-
-  console.log(user);
 
   const safeUser = await prisma.user.findUnique({
     where: { id: user.id },

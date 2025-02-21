@@ -48,7 +48,6 @@ const LoginForm = () => {
     setBackendError(null);
     try {
       const response = await login(data).unwrap();
-      console.log('Login Response:', response);
       if (!response) {
         console.log('Login Response:', loginError);
       }
