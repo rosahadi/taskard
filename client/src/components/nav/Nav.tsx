@@ -78,11 +78,19 @@ const Nav = () => {
           {isAuthenticated && user && (
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <Avatar className="cursor-pointer">
-                  <AvatarImage src={''} alt={user.name} />
-                  <AvatarFallback>
-                    {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                  </AvatarFallback>
+                <Avatar className="cursor-pointer h-8 w-8">
+                  {user.image ? (
+                    <AvatarImage
+                      src={user.image}
+                      alt={user.name}
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <AvatarFallback>
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
               </DropdownMenuTrigger>
 

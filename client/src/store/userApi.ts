@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export interface User {
   name: string;
   email: string;
+  image?: string;
   emailVerified: boolean;
   passwordChangedAt: string;
   createdAt: string;
@@ -12,6 +13,7 @@ export interface User {
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
+  image?: string;
 }
 
 export const userApi = createApi({
@@ -24,6 +26,8 @@ export const userApi = createApi({
   endpoints: (builder) => ({
     getMe: builder.query<User, void>({
       query: () => '/me',
+      transformResponse: (response: { status: string; data: User }) =>
+        response.data,
       providesTags: ['User'],
     }),
 

@@ -318,6 +318,7 @@ export const protect = catchAsync(async (req, res, next) => {
     select: {
       name: true,
       email: true,
+      image: true,
       emailVerified: true,
       passwordChangedAt: true,
       createdAt: true,
