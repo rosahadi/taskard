@@ -80,7 +80,7 @@ export const workspaceApi = createApi({
 
     updateWorkspace: builder.mutation<
       { status: string; data: Workspace },
-      { id: number; body: UpdateWorkspaceRequest }
+      { id: number; body: FormData }
     >({
       query: ({ id, body }) => ({
         url: `/${id}`,

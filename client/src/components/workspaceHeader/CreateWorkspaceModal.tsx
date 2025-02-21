@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ImageIcon, X, Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import { setActiveWorkspace } from '@/store/workspaceSlice';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import ImageUpload from './ImageUpload';
 
 const workspaceFormSchema = z.object({
   name: z.string().min(1, 'Workspace name is required'),
@@ -48,13 +48,11 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
   onClose,
 }) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createWorkspace, { isLoading: isCreating }] =
     useCreateWorkspaceMutation();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { toast } = useToast();
-
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<WorkspaceFormValues>({
@@ -65,15 +63,7 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
     },
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      form.setError('image', { message: 'Image must be less than 10MB' });
-      return;
-    }
-
+  const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
@@ -85,9 +75,6 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
   const handleRemoveImage = () => {
     setImagePreview(null);
     form.setValue('image', undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   const handleFormSubmit = async (values: WorkspaceFormValues) => {
@@ -112,9 +99,6 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
 
       form.reset();
       setImagePreview(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
       onClose();
     } catch (error) {
       const { data } = error as FetchBaseQueryError;
@@ -182,59 +166,17 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
                 <FormItem>
                   <FormLabel>Workspace Image (Optional)</FormLabel>
                   <FormControl>
-                    {imagePreview ? (
-                      <div className="relative w-24 h-24 rounded-lg overflow-hidden">
-                        <Image
-                          src={imagePreview}
-                          alt="Workspace preview"
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={handleRemoveImage}
-                          className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1"
-                          type="button"
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center w-full">
-                        <label
-                          htmlFor="workspace-image"
-                          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[--background-tertiary] border-[--border] hover:bg-[--background-quaternary]"
-                        >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <ImageIcon className="w-8 h-8 mb-3 text-[--text-muted]" />
-                            <p className="mb-2 text-sm text-[--text-muted]">
-                              <span className="font-semibold">
-                                Click to upload
-                              </span>{' '}
-                              or drag and drop
-                            </p>
-                            <p className="text-xs text-[--text-muted]">
-                              SVG, PNG, JPG or GIF (max 10MB)
-                            </p>
-                          </div>
-                          <input
-                            id="workspace-image"
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
-                      </div>
-                    )}
+                    <ImageUpload
+                      imagePreview={imagePreview}
+                      onImageUpload={handleImageUpload}
+                      onRemoveImage={handleRemoveImage}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Display backend error message */}
             {error && <FormMessage>{error}</FormMessage>}
 
             <DialogFooter className="pt-4">

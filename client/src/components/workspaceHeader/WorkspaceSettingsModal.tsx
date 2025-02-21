@@ -1,6 +1,10 @@
 'use client';
 
-import { ImageIcon, X } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,55 +13,111 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import Image from 'next/image';
+import { useUpdateWorkspaceMutation } from '@/store/workspaceApi';
+import { useToast } from '@/hooks/use-toast';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import ImageUpload from './ImageUpload';
 
-const WorkspaceSettingsModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  workspaceName,
-  setWorkspaceName,
-  workspaceImage,
-  setWorkspaceImage,
-  imagePreview,
-  setImagePreview,
-  isUpdating,
-}: {
+const workspaceFormSchema = z.object({
+  name: z.string().min(1, 'Workspace name is required'),
+  image: z.any().optional(),
+});
+
+type WorkspaceFormValues = z.infer<typeof workspaceFormSchema>;
+
+interface WorkspaceSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: () => void;
-  workspaceName: string;
-  setWorkspaceName: (name: string) => void;
-  workspaceImage: string | null;
-  setWorkspaceImage: (image: string | null) => void;
-  imagePreview: string | null;
-  setImagePreview: (preview: string | null) => void;
-  isUpdating: boolean;
+  workspaceId: number | null;
+}
+
+const WorkspaceSettingsModal: React.FC<WorkspaceSettingsModalProps> = ({
+  isOpen,
+  onClose,
+  workspaceId,
 }) => {
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setWorkspaceImage(base64String);
-        setImagePreview(base64String);
-      };
-      reader.readAsDataURL(file);
-    }
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [updateWorkspace, { isLoading: isUpdating }] =
+    useUpdateWorkspaceMutation();
+  const [error, setError] = useState<string | null>(null);
+
+  const form = useForm<WorkspaceFormValues>({
+    resolver: zodResolver(workspaceFormSchema),
+    defaultValues: {
+      name: '',
+      image: undefined,
+    },
+  });
+
+  const handleImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+      form.setValue('image', file);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleRemoveImage = () => {
-    setWorkspaceImage(null);
     setImagePreview(null);
+    form.setValue('image', undefined);
+  };
+
+  const handleFormSubmit = async (values: WorkspaceFormValues) => {
+    try {
+      const formData = new FormData();
+      formData.append('name', values.name);
+
+      if (values.image && values.image instanceof File) {
+        formData.append('image', values.image);
+      }
+
+      await updateWorkspace({
+        id: Number(workspaceId),
+        body: formData,
+      }).unwrap();
+
+      toast({
+        title: 'Success',
+        description: 'Workspace updated successfully!',
+      });
+
+      form.reset();
+      setImagePreview(null);
+      onClose();
+    } catch (error) {
+      const { data } = error as FetchBaseQueryError;
+      setError(
+        data
+          ? (data as { message: string }).message
+          : 'An unexpected error occurred'
+      );
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[--background-secondary] border-[--border] text-[--text-primary]">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          form.reset();
+          setImagePreview(null);
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="bg-[--background-secondary] border-[--border] text-[--text-primary] sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Edit Workspace</DialogTitle>
           <DialogDescription className="text-[--text-muted]">
@@ -65,80 +125,77 @@ const WorkspaceSettingsModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Workspace Name</Label>
-            <Input
-              id="name"
-              placeholder="My Awesome Team"
-              value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
-              className="bg-[--background-tertiary] border-[--border]"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleFormSubmit)}
+            className="space-y-6"
+          >
+            {error && <FormMessage>{error}</FormMessage>}
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Workspace Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter workspace name"
+                      className="bg-[--background-tertiary] border-[--border]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid gap-2">
-            <Label>Workspace Image (Optional)</Label>
-            {imagePreview ? (
-              <div className="relative w-24 h-24 rounded-lg overflow-hidden">
-                <Image
-                  src={imagePreview}
-                  alt="Workspace preview"
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  className="absolute top-1 right-1 bg-black bg-opacity-50 rounded-full p-1"
-                  type="button"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="workspace-image"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[--background-tertiary] border-[--border] hover:bg-[--background-quaternary]"
-                >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <ImageIcon className="w-8 h-8 mb-3 text-[--text-muted]" />
-                    <p className="mb-2 text-sm text-[--text-muted]">
-                      <span className="font-semibold">Click to upload</span> or
-                      drag and drop
-                    </p>
-                    <p className="text-xs text-[--text-muted]">
-                      SVG, PNG, JPG or GIF
-                    </p>
-                  </div>
-                  <input
-                    id="workspace-image"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              </div>
-            )}
-          </div>
-        </div>
+            <FormField
+              control={form.control}
+              name="image"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Workspace Image (Optional)</FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      imagePreview={imagePreview}
+                      onImageUpload={handleImageUpload}
+                      onRemoveImage={handleRemoveImage}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="border-[--border] text-[--text-primary]"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onSubmit}
-            disabled={!workspaceName.trim() || isUpdating}
-            className="bg-[--primary] text-white hover:bg-[--primary-hover]"
-          >
-            {isUpdating ? 'Updating...' : 'Update Workspace'}
-          </Button>
-        </DialogFooter>
+            {error && <FormMessage>{error}</FormMessage>}
+
+            <DialogFooter className="pt-4">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                type="button"
+                className="border-[--border] text-[--text-primary]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isUpdating || !form.formState.isValid}
+                className="bg-[--primary] text-white hover:bg-[--primary-hover]"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Workspace'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

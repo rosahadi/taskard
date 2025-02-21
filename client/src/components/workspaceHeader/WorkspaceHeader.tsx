@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from '@/app/redux';
 import { setActiveWorkspace } from '@/store/workspaceSlice';
 import {
   useGetAllWorkspacesQuery,
-  useUpdateWorkspaceMutation,
   useInviteWorkspaceMemberMutation,
   Workspace,
   Role,
@@ -24,8 +23,6 @@ const WorkspaceHeader = () => {
 
   // API Hooks
   const { data: workspacesResponse, isLoading } = useGetAllWorkspacesQuery();
-  const [updateWorkspace, { isLoading: isUpdating }] =
-    useUpdateWorkspaceMutation();
   const [inviteWorkspaceMember, { isLoading: isInviting }] =
     useInviteWorkspaceMemberMutation();
 
@@ -33,6 +30,7 @@ const WorkspaceHeader = () => {
   const activeWorkspaceId = useAppSelector(
     (state) => state.workspace.activeWorkspaceId
   );
+
   const workspaces = workspacesResponse?.data || [];
   const activeWorkspace =
     workspaces.find((w) => w.id === activeWorkspaceId) || null;
@@ -43,9 +41,6 @@ const WorkspaceHeader = () => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   // Form states for other modals
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [workspaceImage, setWorkspaceImage] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<Role>(Role.MEMBER);
 
@@ -53,34 +48,6 @@ const WorkspaceHeader = () => {
   const handleWorkspaceSelect = (workspace: Workspace) => {
     dispatch(setActiveWorkspace(workspace.id));
     router.push(`/workspaces/${workspace.id}`);
-  };
-
-  // Handle workspace update
-  const handleUpdateWorkspace = async () => {
-    if (!activeWorkspace) return;
-
-    try {
-      await updateWorkspace({
-        id: activeWorkspace.id,
-        body: {
-          name: workspaceName.trim(),
-          image: workspaceImage || undefined,
-        },
-      }).unwrap();
-
-      toast({
-        title: 'Success',
-        description: 'Workspace updated successfully',
-      });
-      setSettingsModalOpen(false);
-    } catch (error) {
-      console.error('Failed to update workspace:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update workspace. Please try again.',
-        variant: 'destructive',
-      });
-    }
   };
 
   // Handle member invitation
@@ -150,14 +117,7 @@ const WorkspaceHeader = () => {
       <WorkspaceSettingsModal
         isOpen={settingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
-        onSubmit={handleUpdateWorkspace}
-        workspaceName={workspaceName}
-        setWorkspaceName={setWorkspaceName}
-        workspaceImage={workspaceImage}
-        setWorkspaceImage={setWorkspaceImage}
-        imagePreview={imagePreview}
-        setImagePreview={setImagePreview}
-        isUpdating={isUpdating}
+        workspaceId={activeWorkspaceId}
       />
 
       <InvitePeopleModal
