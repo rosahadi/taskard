@@ -101,7 +101,7 @@ const handleImageUpload = catchAsync(
       return next();
     }
 
-    const imageUrl = await uploadToCloudinary(req.file.buffer, 'uploads');
+    const imageUrl = await uploadToCloudinary(req.file.buffer, 'blog-images');
     req.body.image = imageUrl;
     next();
   }
