@@ -28,6 +28,8 @@ passport.use(
           },
         });
 
+        const image = profile.photos?.[0]?.value || null;
+
         if (!user) {
           // Create new user
           user = await prisma.user.create({
@@ -38,6 +40,7 @@ passport.use(
               emailVerified: true,
               provider: 'google',
               providerId: profile.id,
+              image: image,
             },
           });
         } else if (!user.provider) {
@@ -48,6 +51,7 @@ passport.use(
               provider: 'google',
               providerId: profile.id,
               emailVerified: true,
+              image: image,
             },
           });
         }
