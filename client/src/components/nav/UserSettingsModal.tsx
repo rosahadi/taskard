@@ -23,42 +23,50 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useCreateWorkspaceMutation } from '@/store/workspaceApi';
-import { useAppDispatch } from '@/app/redux';
-import { setActiveWorkspace } from '@/store/workspaceSlice';
-import { useRouter } from 'next/navigation';
+import { useGetMeQuery, useUpdateMeMutation } from '@/store/userApi';
 import { useToast } from '@/hooks/use-toast';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import ImageUpload from '../ImageUpload';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '@/store/authSlice';
 
-const workspaceFormSchema = z.object({
-  name: z.string().min(1, 'Workspace name is required'),
+const userSettingsSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address'),
   image: z.any().optional(),
 });
 
-type WorkspaceFormValues = z.infer<typeof workspaceFormSchema>;
+type UserSettingsValues = z.infer<typeof userSettingsSchema>;
 
-interface CreateWorkspaceModalProps {
+interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  currentUser: {
+    name: string;
+    email: string;
+    image?: string;
+  };
 }
 
-const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
+const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   isOpen,
   onClose,
+  currentUser,
 }) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [createWorkspace, { isLoading: isCreating }] =
-    useCreateWorkspaceMutation();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
+  const dispatch = useDispatch();
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    currentUser.image || null
+  );
+  const [updateMe, { isLoading: isUpdating }] = useUpdateMeMutation();
+  const { refetch: refetchMe } = useGetMeQuery();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<WorkspaceFormValues>({
-    resolver: zodResolver(workspaceFormSchema),
+  const form = useForm<UserSettingsValues>({
+    resolver: zodResolver(userSettingsSchema),
     defaultValues: {
-      name: '',
+      name: currentUser.name,
+      email: currentUser.email,
       image: undefined,
     },
   });
@@ -77,30 +85,35 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
     form.setValue('image', undefined);
   };
 
-  const handleFormSubmit = async (values: WorkspaceFormValues) => {
+  const handleFormSubmit = async (values: UserSettingsValues) => {
     try {
       const formData = new FormData();
       formData.append('name', values.name);
+      formData.append('email', values.email);
 
       if (values.image && values.image instanceof File) {
         formData.append('image', values.image);
       }
 
-      const result = await createWorkspace(formData).unwrap();
+      await updateMe(formData).unwrap();
 
-      if (result.data) {
-        dispatch(setActiveWorkspace(result.data.id));
-        router.push(`/workspaces/${result.data.id}`);
-        toast({
-          title: 'Success',
-          description: 'Workspace created successfully!',
-        });
+      const { data: userData, error } = await refetchMe();
+
+      if (error) throw new Error('Failed to fetch user data');
+
+      if (userData) {
+        // Store the complete user data in Redux
+        dispatch(setCredentials(userData));
       }
 
-      form.reset();
-      setImagePreview(null);
+      toast({
+        title: 'Success',
+        description: 'Profile updated successfully!',
+      });
+
       onClose();
     } catch (error) {
+      console.log(error);
       const { data } = error as FetchBaseQueryError;
 
       if (data) {
@@ -116,17 +129,20 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          form.reset();
-          setImagePreview(null);
+          form.reset({
+            name: currentUser.name,
+            email: currentUser.email,
+          });
+          setImagePreview(currentUser.image || null);
           onClose();
         }
       }}
     >
       <DialogContent className="bg-[--background-secondary] border-[--border] text-[--text-primary] sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Workspace</DialogTitle>
+          <DialogTitle>User Settings</DialogTitle>
           <DialogDescription className="text-[--text-muted]">
-            Create a workspace to collaborate with your team.
+            Update your profile information
           </DialogDescription>
         </DialogHeader>
 
@@ -135,21 +151,36 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
             onSubmit={form.handleSubmit(handleFormSubmit)}
             className="space-y-6"
           >
-            {form.formState.errors.root && (
-              <div className="text-sm text-red-500">
-                {form.formState.errors.root.message}
-              </div>
-            )}
+            {error && <div className="text-sm text-red-500">{error}</div>}
 
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Workspace Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="My Awesome Team"
+                      placeholder="John Doe"
+                      className="bg-[--background-tertiary] border-[--border]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="john@example.com"
+                      type="email"
                       className="bg-[--background-tertiary] border-[--border]"
                       {...field}
                     />
@@ -164,7 +195,7 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
               name="image"
               render={() => (
                 <FormItem>
-                  <FormLabel>Workspace Image (Optional)</FormLabel>
+                  <FormLabel>Profile Picture</FormLabel>
                   <FormControl>
                     <ImageUpload
                       imagePreview={imagePreview}
@@ -177,8 +208,6 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
               )}
             />
 
-            {error && <FormMessage>{error}</FormMessage>}
-
             <DialogFooter className="pt-4">
               <Button
                 variant="outline"
@@ -190,16 +219,16 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isCreating || !form.formState.isValid}
+                disabled={isUpdating || !form.formState.isValid}
                 className="bg-[--primary] text-white hover:bg-[--primary-hover]"
               >
-                {isCreating ? (
+                {isUpdating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    Updating...
                   </>
                 ) : (
-                  'Create Workspace'
+                  'Save Changes'
                 )}
               </Button>
             </DialogFooter>
@@ -210,4 +239,4 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
   );
 };
 
-export default CreateWorkspaceModal;
+export default UserSettingsModal;

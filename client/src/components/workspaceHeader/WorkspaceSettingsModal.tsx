@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { useUpdateWorkspaceMutation } from '@/store/workspaceApi';
 import { useToast } from '@/hooks/use-toast';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
-import ImageUpload from './ImageUpload';
+import ImageUpload from '../ImageUpload';
 
 const workspaceFormSchema = z.object({
   name: z.string().min(1, 'Workspace name is required'),

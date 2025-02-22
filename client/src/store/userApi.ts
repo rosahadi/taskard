@@ -10,12 +10,6 @@ export interface User {
   updatedAt: string;
 }
 
-export interface UpdateUserRequest {
-  name?: string;
-  email?: string;
-  image?: string;
-}
-
 export const userApi = createApi({
   reducerPath: 'userApi',
   baseQuery: fetchBaseQuery({
@@ -31,11 +25,11 @@ export const userApi = createApi({
       providesTags: ['User'],
     }),
 
-    updateMe: builder.mutation<User, UpdateUserRequest>({
-      query: (data) => ({
+    updateMe: builder.mutation<User, FormData>({
+      query: (formData) => ({
         url: '/updateMe',
         method: 'PATCH',
-        body: data,
+        body: formData,
       }),
       invalidatesTags: ['User'],
     }),

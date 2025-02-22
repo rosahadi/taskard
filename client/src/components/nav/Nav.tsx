@@ -17,9 +17,12 @@ import {
 import { Settings, LogOut } from 'lucide-react';
 import { logoutSuccess } from '@/store/authSlice';
 import { useLogoutMutation } from '@/store/authApi';
+import UserSettingsModal from './UserSettingsModal';
 
 const Nav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const isSidebarCollapsed = useAppSelector(
@@ -76,38 +79,49 @@ const Nav = () => {
         <div className="flex items-center gap-4">
           <ModeToggle />
           {isAuthenticated && user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Avatar className="cursor-pointer h-8 w-8">
-                  {user.image ? (
-                    <AvatarImage
-                      src={user.image}
-                      alt={user.name}
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <AvatarFallback>
-                      {user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-              </DropdownMenuTrigger>
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="cursor-pointer h-8 w-8">
+                    {user.image ? (
+                      <AvatarImage
+                        src={user.image}
+                        alt={user.name}
+                        className="object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <AvatarFallback>
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="w-48 bg-[--background-quaternary] border border-[--border] shadow-lg">
-                <DropdownMenuItem className="px-6 py-2 hover:bg-[--background-tertiary] flex items-center gap-3">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="px-6 py-2 hover:bg-[--background-tertiary] text-textError flex items-center gap-3 "
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent className="w-48 bg-[--background-quaternary] border border-[--border] shadow-lg">
+                  <DropdownMenuItem
+                    className="px-6 py-2 hover:bg-[--background-tertiary] flex items-center gap-3"
+                    onClick={() => setIsSettingsOpen(true)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="px-6 py-2 hover:bg-[--background-tertiary] text-textError flex items-center gap-3"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <UserSettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                currentUser={user}
+              />
+            </>
           )}
         </div>
       </div>

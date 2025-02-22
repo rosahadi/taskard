@@ -39,7 +39,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
   const filteredBody = parsedBody.data;
 
   const updatedUser = await prisma.user.update({
-    where: { id: user.id },
+    where: { email: user.email },
     data: filteredBody,
   });
 
