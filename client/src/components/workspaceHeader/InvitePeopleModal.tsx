@@ -1,5 +1,9 @@
 'use client';
 
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -9,8 +13,15 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectTrigger,
@@ -19,26 +30,72 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Role } from '@/store/workspaceApi';
+import { useToast } from '@/hooks/use-toast';
+import { useInviteWorkspaceMemberMutation } from '@/store/workspaceApi';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+
+const InvitePeopleModalSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  role: z.enum(['ADMIN', 'MEMBER']),
+});
+
+interface InvitePeopleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  workspaceId: number | null;
+}
+
+type InvitePeopleValues = z.infer<typeof InvitePeopleModalSchema>;
 
 const InvitePeopleModal = ({
   isOpen,
   onClose,
-  onSubmit,
-  inviteEmail,
-  setInviteEmail,
-  inviteRole,
-  setInviteRole,
-  isInviting,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: () => void;
-  inviteEmail: string;
-  setInviteEmail: (email: string) => void;
-  inviteRole: Role;
-  setInviteRole: (role: Role) => void;
-  isInviting: boolean;
-}) => {
+  workspaceId,
+}: InvitePeopleModalProps) => {
+  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [inviteWorkspaceMember, { isLoading: isInviting }] =
+    useInviteWorkspaceMemberMutation();
+
+  const form = useForm<InvitePeopleValues>({
+    resolver: zodResolver(InvitePeopleModalSchema),
+    defaultValues: {
+      email: '',
+      role: Role.MEMBER,
+    },
+  });
+
+  const onSubmit = async (values: InvitePeopleValues) => {
+    if (!workspaceId) {
+      setError('No workspace selected. Please select a workspace first.');
+      return;
+    }
+
+    try {
+      await inviteWorkspaceMember({
+        workspaceId,
+        body: {
+          email: values.email.trim(),
+          role: values.role as Role,
+        },
+      }).unwrap();
+
+      toast({
+        title: 'Invitation Sent',
+        description: `Invitation sent to ${values.email.trim()}`,
+      });
+      form.reset();
+      onClose();
+    } catch (error) {
+      const { data } = error as FetchBaseQueryError;
+      setError(
+        data
+          ? (data as { message: string }).message
+          : 'An unexpected error occurred'
+      );
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-[--background-secondary] border-[--border] text-[--text-primary]">
@@ -49,54 +106,73 @@ const InvitePeopleModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          {/* Email Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@email.com"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              className="bg-[--background-tertiary] border-[--border]"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="example@email.com"
+                      className="bg-[--background-tertiary] border-[--border]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Role Selection */}
-          <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <Select
-              value={inviteRole}
-              onValueChange={(value) => setInviteRole(value as Role)}
-            >
-              <SelectTrigger className="bg-[--background-tertiary] border-[--border]">
-                <SelectValue placeholder="Select Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={Role.ADMIN}>Admin</SelectItem>
-                <SelectItem value={Role.MEMBER}>Member</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-[--background-tertiary] border-[--border]">
+                        <SelectValue placeholder="Select Role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={Role.ADMIN}>Admin</SelectItem>
+                      <SelectItem value={Role.MEMBER}>Member</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="border-[--border] text-[--text-primary]"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onSubmit}
-            disabled={!inviteEmail.trim() || isInviting}
-            className="bg-[--primary] text-white hover:bg-[--primary-hover]"
-          >
-            {isInviting ? 'Inviting...' : 'Invite'}
-          </Button>
-        </DialogFooter>
+            {error && <FormMessage>{error}</FormMessage>}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="border-[--border] text-[--text-primary]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isInviting}
+                className="bg-[--primary] text-white hover:bg-[--primary-hover]"
+              >
+                {isInviting ? 'Inviting...' : 'Invite'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

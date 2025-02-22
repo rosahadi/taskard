@@ -4,27 +4,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/app/redux';
 import { setActiveWorkspace } from '@/store/workspaceSlice';
-import {
-  useGetAllWorkspacesQuery,
-  useInviteWorkspaceMemberMutation,
-  Workspace,
-  Role,
-} from '@/store/workspaceApi';
+import { useGetAllWorkspacesQuery, Workspace } from '@/store/workspaceApi';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 import WorkspaceSettingsModal from './WorkspaceSettingsModal';
 import InvitePeopleModal from './InvitePeopleModal';
 import WorkspaceDropdown from './WorkspaceDropdown';
-import { useToast } from '@/hooks/use-toast';
 
 const WorkspaceHeader = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { toast } = useToast();
 
   // API Hooks
   const { data: workspacesResponse, isLoading } = useGetAllWorkspacesQuery();
-  const [inviteWorkspaceMember, { isLoading: isInviting }] =
-    useInviteWorkspaceMemberMutation();
 
   // Get active workspace from Redux store
   const activeWorkspaceId = useAppSelector(
@@ -40,43 +31,10 @@ const WorkspaceHeader = () => {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-  // Form states for other modals
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<Role>(Role.MEMBER);
-
   // Handle workspace selection
   const handleWorkspaceSelect = (workspace: Workspace) => {
     dispatch(setActiveWorkspace(workspace.id));
     router.push(`/workspaces/${workspace.id}`);
-  };
-
-  // Handle member invitation
-  const handleInviteMember = async () => {
-    if (!activeWorkspace) return;
-    if (!inviteEmail.trim()) return;
-
-    try {
-      await inviteWorkspaceMember({
-        workspaceId: activeWorkspace.id,
-        body: {
-          email: inviteEmail.trim(),
-          role: inviteRole,
-        },
-      }).unwrap();
-
-      toast({
-        title: 'Invitation Sent',
-        description: `Invitation sent to ${inviteEmail.trim()}`,
-      });
-      setInviteEmail('');
-      setInviteModalOpen(false);
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to send invitation. Please try again.',
-        variant: 'destructive',
-      });
-    }
   };
 
   // Loading state
@@ -122,12 +80,7 @@ const WorkspaceHeader = () => {
       <InvitePeopleModal
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
-        onSubmit={handleInviteMember}
-        inviteEmail={inviteEmail}
-        setInviteEmail={setInviteEmail}
-        isInviting={isInviting}
-        inviteRole={inviteRole}
-        setInviteRole={setInviteRole}
+        workspaceId={activeWorkspaceId}
       />
     </>
   );

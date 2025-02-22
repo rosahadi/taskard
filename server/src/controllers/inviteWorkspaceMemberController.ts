@@ -136,6 +136,7 @@ export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
     where: {
       token: tokenHash,
       workspaceId: parseInt(id),
+      email: user.email,
       expires: { gt: new Date() },
     },
   });
@@ -144,9 +145,16 @@ export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid or expired invitation', 400));
   }
 
-  if (invite.email !== user.email) {
+  const existingMember = await prisma.workspaceMember.findFirst({
+    where: {
+      userId: user.id,
+      workspaceId: parseInt(id),
+    },
+  });
+
+  if (existingMember) {
     return next(
-      new AppError('This invitation was sent to a different email address', 403)
+      new AppError('You are already a member of this workspace', 400)
     );
   }
 

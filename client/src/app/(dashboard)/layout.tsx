@@ -29,7 +29,9 @@ export default function DashboardLayout({
   return (
     <div className="flex">
       <AppSidebar />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 bg-[--background-primary] min-h-svh">
+        {children}
+      </main>
     </div>
   );
 }

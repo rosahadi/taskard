@@ -38,7 +38,7 @@ workspaceRouter.post(
   inviteWorkspaceMemberController.inviteWorkspaceMember
 );
 workspaceRouter.get(
-  '/:workspaceId/join/:token',
+  '/:id/join/:token',
   inviteWorkspaceMemberController.acceptWorkspaceInvitation
 );
 
