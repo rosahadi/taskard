@@ -53,7 +53,7 @@ export default function GoogleCallback() {
   }, [searchParams, router, googleAuthCallback, dispatch, refetchMe]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-[--background-primary]">
       <div className="text-center">
         <h2 className="text-2xl font-semibold mb-2">
           {backendError ? 'Authentication Failed' : 'Authenticating...'}
