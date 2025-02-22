@@ -11,18 +11,14 @@ import {
   Home,
   Layers3,
   LucideIcon,
-  Search,
-  Settings,
   ShieldAlert,
-  User,
-  Users,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import Logo from '../Logo';
-import WorkspaceHeader from './WorkspaceHeader';
+import WorkspaceHeader from '../workspaceHeader/WorkspaceHeader';
 
 const Sidebar = () => {
   const [showProjects, setShowProjects] = useState(true);
@@ -64,10 +60,6 @@ const Sidebar = () => {
         <nav className="z-10 w-full">
           <SidebarLink icon={Home} label="Home" href="/" />
           <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" />
-          <SidebarLink icon={Search} label="Search" href="/search" />
-          <SidebarLink icon={Settings} label="Settings" href="/settings" />
-          <SidebarLink icon={User} label="Users" href="/users" />
-          <SidebarLink icon={Users} label="Teams" href="/teams" />
         </nav>
 
         {/* PROJECTS LINKS */}

@@ -70,8 +70,7 @@ const WorkspaceHeader = () => {
       });
       setInviteEmail('');
       setInviteModalOpen(false);
-    } catch (error) {
-      console.error('Failed to invite:', error);
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to send invitation. Please try again.',

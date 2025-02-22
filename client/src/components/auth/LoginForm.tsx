@@ -47,10 +47,7 @@ const LoginForm = () => {
   const onSubmit = async (data: FormValues) => {
     setBackendError(null);
     try {
-      const response = await login(data).unwrap();
-      if (!response) {
-        console.log('Login Response:', loginError);
-      }
+      await login(data).unwrap();
 
       const { data: userData, error } = await refetchMe();
 

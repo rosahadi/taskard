@@ -113,7 +113,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
       onClose();
     } catch (error) {
-      console.log(error);
       const { data } = error as FetchBaseQueryError;
 
       if (data) {
