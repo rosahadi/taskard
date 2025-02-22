@@ -20,6 +20,7 @@ import {
 import { createSendToken } from '../utils/createSendToken';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../email/email';
 import currentUser from '../utils/currentUser';
+import { createDefaultWorkspace } from './workspaceController';
 
 dotenv.config();
 
@@ -87,13 +88,18 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     );
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      emailVerified: true,
-      verificationToken: null,
-      verificationExpires: null,
-    },
+  // Update user and create workspace
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        verificationToken: null,
+        verificationExpires: null,
+      },
+    });
+
+    await createDefaultWorkspace(user);
   });
 
   res.status(200).json({
@@ -113,13 +119,19 @@ export const googleAuthCallback = catchAsync(async (req, res, next) => {
   passport.authenticate(
     'google',
     { session: false },
-    (err: Error, user: User) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (err: Error, user: User, info: any) => {
       if (err) {
         return next(new AppError(`Authentication failed: ${err.message}`, 401));
       }
 
       if (!user) {
         return next(new AppError('No user found with these credentials', 401));
+      }
+
+      // Check if this is a new user (just created via OAuth)
+      if (info?.isNewUser) {
+        await createDefaultWorkspace(user);
       }
 
       // Set JWT in cookies

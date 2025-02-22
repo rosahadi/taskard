@@ -30,6 +30,8 @@ passport.use(
 
         const image = profile.photos?.[0]?.value || null;
 
+        const isNewUser = !user;
+
         if (!user) {
           // Create new user
           user = await prisma.user.create({
@@ -56,7 +58,7 @@ passport.use(
           });
         }
 
-        return done(null, user);
+        done(null, user, { isNewUser });
       } catch (error) {
         return done(error as Error, false);
       }

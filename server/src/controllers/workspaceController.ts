@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, User } from '@prisma/client';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
@@ -57,6 +57,49 @@ export const createWorkspace = catchAsync(async (req, res, next) => {
     data: workspace,
   });
 });
+
+// Create defualt workspace
+export const createDefaultWorkspace = async (user: User) => {
+  try {
+    const workspaceName = `${user.name}'s Workspace`;
+
+    const workspace = await prisma.workspace.create({
+      data: {
+        name: workspaceName,
+        ownerId: user.id,
+        // Add creator as admin member
+        members: {
+          create: {
+            userId: user.id,
+            role: Role.ADMIN,
+          },
+        },
+      },
+      include: {
+        owner: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return workspace;
+  } catch {
+    throw new Error('Failed to create workspace');
+  }
+};
 
 // Get all workspaces the user owns or is a member of
 export const getAllWorkspaces = catchAsync(async (req, res, next) => {
