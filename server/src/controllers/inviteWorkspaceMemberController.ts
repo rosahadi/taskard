@@ -177,3 +177,18 @@ export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
     message: 'You have successfully joined the workspace',
   });
 });
+
+// Scheduled task to clean up expired invitatinos
+export const cleanupExpiredInvitations = async () => {
+  try {
+    const deletedInvites = await prisma.workspaceInvite.deleteMany({
+      where: {
+        expires: { lt: new Date() },
+      },
+    });
+
+    console.log(`Deleted ${deletedInvites.count} expired invitations.`);
+  } catch (error) {
+    console.error('Error cleaning up expired invitations:', error);
+  }
+};
