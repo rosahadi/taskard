@@ -20,6 +20,7 @@ export interface WorkspaceMember {
   user: {
     name: string;
     email: string;
+    image?: string;
   };
 }
 
@@ -41,6 +42,18 @@ export interface InviteWorkspaceMemberRequest {
 export interface WorkspaceInvite {
   id: number;
   email: string;
+  role: Role;
+}
+
+export interface WorkspaceMemberDetails extends WorkspaceMember {
+  user: {
+    name: string;
+    email: string;
+    image?: string;
+  };
+}
+
+export interface UpdateMemberRoleRequest {
   role: Role;
 }
 
@@ -130,6 +143,46 @@ export const workspaceApi = createApi({
         { type: 'WorkspaceMembers', id: workspaceId },
       ],
     }),
+
+    // Workspace members endpoints
+    getWorkspaceMembers: builder.query<
+      { status: string; data: WorkspaceMember[] },
+      number
+    >({
+      query: (workspaceId) => `/${workspaceId}/members`,
+      providesTags: (result, error, workspaceId) => [
+        { type: 'WorkspaceMembers', id: workspaceId },
+      ],
+    }),
+
+    updateMemberRole: builder.mutation<
+      { status: string; data: WorkspaceMember },
+      { memberId: number; role: Role; workspaceId: number }
+    >({
+      query: ({ memberId, role }) => ({
+        url: `/members/${memberId}`,
+        method: 'PATCH',
+        body: { role },
+      }),
+      invalidatesTags: (result, error, { workspaceId }) => [
+        { type: 'WorkspaceMembers', id: workspaceId },
+        { type: 'Workspace', id: workspaceId },
+      ],
+    }),
+
+    removeMember: builder.mutation<
+      void,
+      { memberId: number; workspaceId: number }
+    >({
+      query: ({ memberId }) => ({
+        url: `/members/${memberId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { workspaceId }) => [
+        { type: 'WorkspaceMembers', id: workspaceId },
+        { type: 'Workspace', id: workspaceId },
+      ],
+    }),
   }),
 });
 
@@ -141,4 +194,7 @@ export const {
   useDeleteWorkspaceMutation,
   useInviteWorkspaceMemberMutation,
   useAcceptWorkspaceInvitationMutation,
+  useGetWorkspaceMembersQuery,
+  useUpdateMemberRoleMutation,
+  useRemoveMemberMutation,
 } = workspaceApi;
