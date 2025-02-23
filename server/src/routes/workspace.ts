@@ -2,6 +2,7 @@ import express from 'express';
 import * as authController from '../controllers/authController';
 import * as workspaceController from '../controllers/workspaceController';
 import * as inviteWorkspaceMemberController from '../controllers/inviteWorkspaceMemberController';
+import * as workspaceMembersController from '../controllers/workspaceMembersController';
 import {
   createImageUploadMiddleware,
   handleImageUpload,
@@ -40,6 +41,19 @@ workspaceRouter.post(
 workspaceRouter.get(
   '/:id/join/:token',
   inviteWorkspaceMemberController.acceptWorkspaceInvitation
+);
+
+workspaceRouter.get(
+  '/:workspaceId/members',
+  workspaceMembersController.getWorkspaceMembers
+);
+workspaceRouter.patch(
+  '/members/:memberId',
+  workspaceMembersController.updateMemberRole
+);
+workspaceRouter.delete(
+  '/members/:memberId',
+  workspaceMembersController.removeMember
 );
 
 export default workspaceRouter;
