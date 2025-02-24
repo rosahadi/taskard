@@ -3,20 +3,19 @@ import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
 import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
+import { validateRequest } from '../utils/validateRequest';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
 // Create new workspace
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createWorkspace = catchAsync(async (req, res, next) => {
+  validateRequest(req, { body: createWorkspaceSchema });
+
   const user = await currentUser(req);
 
-  const parsedData = createWorkspaceSchema.safeParse(req.body);
-  if (!parsedData.success) {
-    const errorMessages = parsedData.error.errors.map((err) => err.message);
-    return next(new AppError(errorMessages.join(', '), 400));
-  }
-
-  const { name, image } = parsedData.data;
+  const { name, image } = req.body;
 
   // Create workspace with owner
   const workspace = await prisma.workspace.create({
@@ -188,16 +187,14 @@ export const getWorkspace = catchAsync(async (req, res, next) => {
 
 // Update workspace
 export const updateWorkspace = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    body: updateWorkspaceSchema,
+    params: z.object({ id: z.string().regex(/^\d+$/, 'Invalid workspace ID') }),
+  });
+
   const user = await currentUser(req);
   const { id } = req.params;
-
-  const parsedData = updateWorkspaceSchema.safeParse(req.body);
-  if (!parsedData.success) {
-    const errorMessages = parsedData.error.errors.map((err) => err.message);
-    return next(new AppError(errorMessages.join(', '), 400));
-  }
-
-  const { name, image } = parsedData.data;
+  const { name, image } = req.body;
 
   // Check if user is owner or admin
   const membership = await prisma.workspaceMember.findFirst({
