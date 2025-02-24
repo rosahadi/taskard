@@ -3,7 +3,11 @@ import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
 import { validateRequest } from '../utils/validateRequest';
-import { createTaskSchema } from '../schemas/task';
+import {
+  createTaskSchema,
+  getAllTasksSchema,
+  getTaskSchema,
+} from '../schemas/task';
 
 const prisma = new PrismaClient();
 
@@ -162,5 +166,117 @@ export const createTask = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     data: taskWithAssignments,
+  });
+});
+
+export const getAllTasks = catchAsync(async (req, res, next) => {
+  validateRequest(req, { query: getAllTasksSchema });
+
+  const user = await currentUser(req);
+  const { projectId } = req.query;
+
+  // See if user has access to project
+  const project = await prisma.project.findFirst({
+    where: {
+      id: Number(projectId),
+      workspace: {
+        members: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    return next(new AppError('Project not found or access denied', 404));
+  }
+
+  // Fetch all tasks for the project
+  const tasks = await prisma.task.findMany({
+    where: {
+      projectId: Number(projectId),
+    },
+    include: {
+      assignees: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: tasks,
+  });
+});
+
+export const getTask = catchAsync(async (req, res, next) => {
+  validateRequest(req, { params: getTaskSchema });
+
+  const user = await currentUser(req);
+  const { taskId } = req.params;
+
+  // Fetch the task
+  const task = await prisma.task.findUnique({
+    where: {
+      id: Number(taskId),
+    },
+    include: {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      assignees: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      project: {
+        select: {
+          workspace: {
+            select: {
+              members: {
+                where: {
+                  userId: user.id,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!task) {
+    return next(new AppError('Task not found', 404));
+  }
+
+  // Check if user has access to the task's project
+  if (
+    !task.project.workspace.members.some((member) => member.userId === user.id)
+  ) {
+    return next(new AppError('Access denied', 403));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: task,
   });
 });

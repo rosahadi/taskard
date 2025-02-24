@@ -6,6 +6,11 @@ const taskRouter = express.Router();
 
 taskRouter.use(authController.protect);
 
-taskRouter.route('/').post(taskController.createTask);
+taskRouter
+  .route('/')
+  .post(taskController.createTask)
+  .get(taskController.getAllTasks);
+
+taskRouter.route('/:taskId').get(taskController.getTask);
 
 export default taskRouter;
