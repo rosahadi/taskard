@@ -17,6 +17,7 @@ import './config/passport';
 import { initializeCronJobs } from './utils/cron';
 import globalErrorHandler from './controllers/errorController';
 import workspaceRouter from './routes/workspace';
+import projectRouter from './routes/project';
 
 dotenv.config();
 
@@ -84,6 +85,7 @@ initializeCronJobs();
 // API routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/workspaces', workspaceRouter);
+app.use('/api/v1/projects', projectRouter);
 
 // Handle undefined API routes
 app.all('/api/*', (req, res, next) => {
