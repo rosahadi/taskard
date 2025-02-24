@@ -18,6 +18,21 @@ enum Role {
   MEMBER
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELED
+}
+
+enum Priority {
+  URGENT
+  HIGH
+  NORMAL
+  LOW
+}
+
 model User {
   id                   Int       @id @default(autoincrement())
   email                String    @unique
@@ -35,8 +50,14 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
+  // Relations
   ownedWorkspaces      Workspace[]       @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceMember[]
+  createdProjects      Project[]         @relation("ProjectCreator")
+  createdTasks         Task[]            @relation("TaskCreator")
+  taskAssignments      TaskAssignment[]
+  taskComments         TaskComment[]
+  taskAttachments      TaskAttachment[]
 
   @@unique([provider, providerId])
 }
@@ -53,6 +74,7 @@ model Workspace {
   ownerId         Int
   owner           User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
   WorkspaceInvite WorkspaceInvite[]
+  Project         Project[]
 
   @@index([ownerId])
 }
@@ -62,7 +84,7 @@ model WorkspaceMember {
   role     Role     @default(MEMBER)
   joinedAt DateTime @default(now())
 
-  // Relationships
+  // Relations
   userId      Int
   user        User      @relation(fields: [userId], references: [id])
   workspaceId Int
@@ -80,13 +102,114 @@ model WorkspaceInvite {
   token     String   @unique
   expires   DateTime
   createdAt DateTime @default(now())
-  invitedBy Int 
+  invitedBy Int
 
-  // Relationships
+  // Relations
   workspaceId Int
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
   @@unique([email, workspaceId])
   @@index([token])
   @@index([workspaceId])
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspaceId Int 
+  creatorId   Int 
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  creator   User      @relation("ProjectCreator", fields: [creatorId], references: [id])
+  tasks     Task[]
+
+  // Indexes
+  @@index([workspaceId])
+  @@index([creatorId])
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO) 
+  priority    Priority   @default(NORMAL) 
+  tags        String[] 
+  startDate   DateTime?
+  dueDate     DateTime?
+  points      Int?
+  projectId   Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  project     Project          @relation(fields: [projectId], references: [id])
+  creator     User             @relation("TaskCreator", fields: [creatorId], references: [id])
+  assignees   TaskAssignment[]
+  parentTask  Task?            @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks    Task[]           @relation("SubTasks")
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+
+  // Foreign keys
+  creatorId    Int
+  parentTaskId Int?
+
+  // Indexes
+  @@index([projectId])
+  @@index([creatorId])
+  @@index([parentTaskId])
+}
+
+model TaskAssignment {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  taskId     Int
+  assignedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId])
+  @@index([userId])
+  @@index([taskId])
+}
+
+model TaskComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+model TaskAttachment {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  url       String
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
 }
