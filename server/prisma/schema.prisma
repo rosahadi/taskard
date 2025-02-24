@@ -63,18 +63,18 @@ model User {
 }
 
 model Workspace {
-  id        Int               @id @default(autoincrement())
-  name      String
-  image     String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  members   WorkspaceMember[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  image           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  members         WorkspaceMember[]
+  WorkspaceInvite WorkspaceInvite[]
+  projects        Project[]
 
   // Owner relationship
-  ownerId         Int
-  owner           User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
-  WorkspaceInvite WorkspaceInvite[]
-  Project         Project[]
+  ownerId Int
+  owner   User @relation("WorkspaceOwner", fields: [ownerId], references: [id])
 
   @@index([ownerId])
 }
@@ -121,8 +121,8 @@ model Project {
   endDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  workspaceId Int 
-  creatorId   Int 
+  workspaceId Int
+  creatorId   Int
 
   // Relations
   workspace Workspace @relation(fields: [workspaceId], references: [id])
@@ -138,9 +138,9 @@ model Task {
   id          Int        @id @default(autoincrement())
   title       String
   description String?
-  status      TaskStatus @default(TODO) 
-  priority    Priority   @default(NORMAL) 
-  tags        String[] 
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(NORMAL)
+  tags        String[]
   startDate   DateTime?
   dueDate     DateTime?
   points      Int?
