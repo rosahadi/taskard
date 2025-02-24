@@ -12,6 +12,10 @@ projectRouter
   .route('/workspace/:workspaceId')
   .get(projectController.getAllProjects);
 
-projectRouter.route('/:projectId').get(projectController.getProject);
+projectRouter
+  .route('/:projectId')
+  .get(projectController.getProject)
+  .patch(projectController.updateProject)
+  .delete(projectController.deleteProject);
 
 export default projectRouter;

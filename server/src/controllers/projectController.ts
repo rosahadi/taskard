@@ -4,8 +4,10 @@ import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
 import {
   createProjectSchema,
+  deleteProjectSchema,
   getAllProjectsSchema,
   getProjectSchema,
+  updateProjectSchema,
 } from '../schemas/project';
 import { validateRequest } from '../utils/validateRequest';
 
@@ -105,11 +107,11 @@ export const getProject = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: getProjectSchema });
 
   const user = await currentUser(req);
-  const { id } = req.params;
+  const { projectId } = req.params;
 
   const project = await prisma.project.findFirst({
     where: {
-      id: parseInt(id),
+      id: parseInt(projectId),
       workspace: {
         members: {
           some: {
@@ -119,20 +121,8 @@ export const getProject = catchAsync(async (req, res, next) => {
       },
     },
     include: {
-      creator: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
       tasks: {
         include: {
-          creator: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
           assignees: {
             include: {
               user: {
@@ -155,5 +145,110 @@ export const getProject = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: project,
+  });
+});
+
+export const updateProject = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: updateProjectSchema.shape.params,
+    body: updateProjectSchema.shape.body,
+  });
+
+  const user = await currentUser(req);
+  const { projectId } = req.params;
+  const { name, description, startDate, endDate } = req.body;
+
+  // Check if user has access to project
+  const project = await prisma.project.findFirst({
+    where: {
+      id: parseInt(projectId),
+      workspace: {
+        members: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    return next(new AppError('Project not found or access denied', 404));
+  }
+
+  const updatedProject = await prisma.project.update({
+    where: {
+      id: parseInt(projectId),
+    },
+    data: {
+      name,
+      description,
+      startDate,
+      endDate,
+    },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: updatedProject,
+  });
+});
+
+export const deleteProject = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: deleteProjectSchema,
+  });
+
+  const user = await currentUser(req);
+  const { projectId } = req.params;
+
+  // Check if user has access to delete project
+  const project = await prisma.project.findFirst({
+    where: {
+      id: parseInt(projectId),
+      OR: [
+        { creatorId: user.id },
+        {
+          workspace: {
+            members: {
+              some: {
+                userId: user.id,
+                role: 'ADMIN',
+              },
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  if (!project) {
+    return next(new AppError('Project not found or access denied', 404));
+  }
+
+  // Delete all related tasks and assignments first
+  await prisma.taskAssignment.deleteMany({
+    where: {
+      task: {
+        projectId: parseInt(projectId),
+      },
+    },
+  });
+
+  await prisma.task.deleteMany({
+    where: {
+      projectId: parseInt(projectId),
+    },
+  });
+
+  await prisma.project.delete({
+    where: {
+      id: parseInt(projectId),
+    },
+  });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
