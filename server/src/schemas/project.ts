@@ -15,3 +15,23 @@ export const createProjectSchema = z.object({
 });
 
 export const updateProjectSchema = createProjectSchema.partial();
+
+export const getAllProjectsSchema = z.object({
+  workspaceId: z.coerce
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val > 0, {
+      message: 'Workspace ID must be a positive integer',
+    }),
+});
+
+export const getProjectSchema = z.object({
+  projectId: z.coerce
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val > 0, {
+      message: 'Project ID must be a positive integer',
+    }),
+});

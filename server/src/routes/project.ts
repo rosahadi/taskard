@@ -8,4 +8,10 @@ projectRouter.use(authController.protect);
 
 projectRouter.route('/').post(projectController.createProject);
 
+projectRouter
+  .route('/workspace/:workspaceId')
+  .get(projectController.getAllProjects);
+
+projectRouter.route('/:projectId').get(projectController.getProject);
+
 export default projectRouter;
