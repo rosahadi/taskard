@@ -2,11 +2,19 @@ import { PrismaClient, Role } from '@prisma/client';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
+import { validateRequest } from '../utils/validateRequest';
+import {
+  getWorkspaceMembersSchema,
+  removeMemberSchema,
+  updateMemberRoleSchema,
+} from '../schemas/workspace';
 
 const prisma = new PrismaClient();
 
 // Get all members of a workspace
 export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
+  validateRequest(req, { params: getWorkspaceMembersSchema });
+
   const user = await currentUser(req);
   const { workspaceId } = req.params;
 
@@ -23,8 +31,6 @@ export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
       ownerId: user.id,
     },
   });
-
-  console.log(hasAccess);
 
   if (!hasAccess && !isOwner) {
     return next(new AppError('Access denied to this workspace', 403));
@@ -53,6 +59,11 @@ export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
 
 // Update member role
 export const updateMemberRole = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: updateMemberRoleSchema.shape.params,
+    body: updateMemberRoleSchema.shape.body,
+  });
+
   const user = await currentUser(req);
   const { memberId } = req.params;
   const { role } = req.body;
@@ -111,6 +122,8 @@ export const updateMemberRole = catchAsync(async (req, res, next) => {
 
 // Remove member from workspace
 export const removeMember = catchAsync(async (req, res, next) => {
+  validateRequest(req, { params: removeMemberSchema });
+
   const user = await currentUser(req);
   const { memberId } = req.params;
 

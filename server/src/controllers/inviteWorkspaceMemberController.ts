@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
-import { inviteWorkspaceMemberSchema } from '../schemas';
+import { inviteWorkspaceMemberSchema } from '../schemas/workspace';
 import { sendWorkspaceInviteEmail } from '../email/email';
 import { generateAndHashToken } from '../utils/auth';
 

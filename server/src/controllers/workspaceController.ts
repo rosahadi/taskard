@@ -2,7 +2,10 @@ import { PrismaClient, Role, User } from '@prisma/client';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
-import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
+import {
+  createWorkspaceSchema,
+  updateWorkspaceSchema,
+} from '../schemas/workspace';
 import { validateRequest } from '../utils/validateRequest';
 import { z } from 'zod';
 
