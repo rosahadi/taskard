@@ -75,3 +75,13 @@ export const deleteTaskSchema = z.object({
       message: 'Task ID must be a positive integer',
     }),
 });
+
+export const assignTaskSchema = z.object({
+  taskId: z.number().int().positive(),
+  userId: z.number().int().positive(),
+});
+
+export const unassignTaskSchema = z.object({
+  taskId: z.number().int().positive(),
+  userId: z.number().int().positive(),
+});

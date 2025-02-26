@@ -4,10 +4,12 @@ import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
 import { validateRequest } from '../utils/validateRequest';
 import {
+  assignTaskSchema,
   createTaskSchema,
   deleteTaskSchema,
   getAllTasksSchema,
   getTaskSchema,
+  unassignTaskSchema,
   updateTaskSchema,
 } from '../schemas/task';
 
@@ -422,6 +424,139 @@ export const deleteTask = catchAsync(async (req, res, next) => {
       where: { id: parseInt(taskId) },
     }),
   ]);
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
+export const assignTask = catchAsync(async (req, res, next) => {
+  validateRequest(req, { body: assignTaskSchema });
+
+  const user = await currentUser(req);
+  const { taskId, userId } = req.body;
+
+  const task = await prisma.task.findFirst({
+    where: {
+      id: taskId,
+      project: {
+        workspace: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!task) {
+    return next(new AppError('Task not found or access denied', 404));
+  }
+
+  const isMember = await prisma.workspaceMember.findFirst({
+    where: {
+      userId,
+      workspace: {
+        projects: {
+          some: {
+            id: task.projectId,
+          },
+        },
+      },
+    },
+  });
+
+  if (!isMember) {
+    return next(
+      new AppError('User must be a member of the workspace to be assigned', 400)
+    );
+  }
+
+  // Check if assignment already exists
+  const existingAssignment = await prisma.taskAssignment.findFirst({
+    where: {
+      taskId,
+      userId,
+    },
+  });
+
+  if (existingAssignment) {
+    return next(new AppError('User is already assigned to this task', 400));
+  }
+
+  const assignment = await prisma.taskAssignment.create({
+    data: {
+      taskId,
+      userId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      task: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+    },
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data: assignment,
+  });
+});
+
+export const unassignTask = catchAsync(async (req, res, next) => {
+  validateRequest(req, { body: unassignTaskSchema });
+
+  const user = await currentUser(req);
+  const { taskId, userId } = req.body;
+
+  const task = await prisma.task.findFirst({
+    where: {
+      id: taskId,
+      project: {
+        workspace: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!task) {
+    return next(new AppError('Task not found or access denied', 404));
+  }
+
+  // Check if assignment exists
+  const assignment = await prisma.taskAssignment.findFirst({
+    where: {
+      taskId,
+      userId,
+    },
+  });
+
+  if (!assignment) {
+    return next(new AppError('User is not assigned to this task', 404));
+  }
+
+  await prisma.taskAssignment.delete({
+    where: {
+      id: assignment.id,
+    },
+  });
 
   res.status(204).json({
     status: 'success',
