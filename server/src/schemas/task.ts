@@ -85,3 +85,28 @@ export const unassignTaskSchema = z.object({
   taskId: z.number().int().positive(),
   userId: z.number().int().positive(),
 });
+
+export const addCommentSchema = z.object({
+  taskId: z.number().int().positive(),
+  content: z.string().min(1, 'Comment content is required'),
+});
+
+export const deleteCommentSchema = z.object({
+  commentId: z.coerce
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val > 0, {
+      message: 'Comment ID must be a positive integer',
+    }),
+});
+
+export const getTaskCommentsSchema = z.object({
+  taskId: z.coerce
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val > 0, {
+      message: 'Task ID must be a positive integer',
+    }),
+});
