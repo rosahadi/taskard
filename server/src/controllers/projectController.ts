@@ -226,26 +226,25 @@ export const deleteProject = catchAsync(async (req, res, next) => {
     return next(new AppError('Project not found or access denied', 404));
   }
 
-  // Delete all related tasks and assignments first
-  await prisma.taskAssignment.deleteMany({
-    where: {
-      task: {
+  await prisma.$transaction([
+    prisma.taskAssignment.deleteMany({
+      where: {
+        task: {
+          projectId: parseInt(projectId),
+        },
+      },
+    }),
+    prisma.task.deleteMany({
+      where: {
         projectId: parseInt(projectId),
       },
-    },
-  });
-
-  await prisma.task.deleteMany({
-    where: {
-      projectId: parseInt(projectId),
-    },
-  });
-
-  await prisma.project.delete({
-    where: {
-      id: parseInt(projectId),
-    },
-  });
+    }),
+    prisma.project.delete({
+      where: {
+        id: parseInt(projectId),
+      },
+    }),
+  ]);
 
   res.status(204).json({
     status: 'success',

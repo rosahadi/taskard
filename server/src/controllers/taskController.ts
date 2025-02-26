@@ -5,8 +5,10 @@ import currentUser from '../utils/currentUser';
 import { validateRequest } from '../utils/validateRequest';
 import {
   createTaskSchema,
+  deleteTaskSchema,
   getAllTasksSchema,
   getTaskSchema,
+  updateTaskSchema,
 } from '../schemas/task';
 
 const prisma = new PrismaClient();
@@ -278,5 +280,151 @@ export const getTask = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: task,
+  });
+});
+
+export const updateTask = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: updateTaskSchema.shape.params,
+    body: updateTaskSchema.shape.body,
+  });
+
+  const user = await currentUser(req);
+  const { taskId } = req.params;
+  const {
+    title,
+    description,
+    status,
+    priority,
+    tags,
+    startDate,
+    dueDate,
+    points,
+    parentTaskId,
+  } = req.body;
+
+  // Check if user has access to the task
+  const task = await prisma.task.findFirst({
+    where: {
+      id: parseInt(taskId),
+      project: {
+        workspace: {
+          members: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      },
+    },
+    include: {
+      project: true,
+    },
+  });
+
+  if (!task) {
+    return next(new AppError('Task not found or access denied', 404));
+  }
+
+  // Check if parent task exists in the same project if provided
+  if (parentTaskId && parentTaskId !== task.parentTaskId) {
+    const parentTask = await prisma.task.findFirst({
+      where: {
+        id: parentTaskId,
+        projectId: task.projectId,
+      },
+    });
+
+    if (!parentTask) {
+      return next(new AppError('Parent task not found in this project', 404));
+    }
+
+    if (parentTaskId === parseInt(taskId)) {
+      return next(new AppError('Task cannot be its own parent', 400));
+    }
+  }
+
+  const updatedTask = await prisma.task.update({
+    where: {
+      id: parseInt(taskId),
+    },
+    data: {
+      title,
+      description,
+      status,
+      priority,
+      tags,
+      startDate: startDate ? new Date(startDate) : undefined,
+      dueDate: dueDate ? new Date(dueDate) : undefined,
+      points,
+      parentTaskId,
+    },
+    include: {
+      assignees: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: updatedTask,
+  });
+});
+
+export const deleteTask = catchAsync(async (req, res, next) => {
+  validateRequest(req, { params: deleteTaskSchema });
+
+  const user = await currentUser(req);
+  const { taskId } = req.params;
+
+  const task = await prisma.task.findFirst({
+    where: {
+      id: parseInt(taskId),
+      OR: [
+        {
+          project: {
+            workspace: {
+              members: {
+                some: {
+                  userId: user.id,
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  if (!task) {
+    return next(new AppError('Task not found or access denied', 404));
+  }
+
+  await prisma.$transaction([
+    prisma.taskComment.deleteMany({
+      where: { taskId: parseInt(taskId) },
+    }),
+    prisma.taskAttachment.deleteMany({
+      where: { taskId: parseInt(taskId) },
+    }),
+    prisma.taskAssignment.deleteMany({
+      where: { taskId: parseInt(taskId) },
+    }),
+    prisma.task.delete({
+      where: { id: parseInt(taskId) },
+    }),
+  ]);
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });

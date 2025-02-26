@@ -11,6 +11,10 @@ taskRouter
   .post(taskController.createTask)
   .get(taskController.getAllTasks);
 
-taskRouter.route('/:taskId').get(taskController.getTask);
+taskRouter
+  .route('/:taskId')
+  .get(taskController.getTask)
+  .patch(taskController.updateTask)
+  .delete(taskController.deleteTask);
 
 export default taskRouter;
