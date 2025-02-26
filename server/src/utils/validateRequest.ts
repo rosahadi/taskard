@@ -16,8 +16,6 @@ export const validateRequest = (req: Request, schemas: ValidationSchemas) => {
         field: err.path.join('.'),
         message: err.message,
       }));
-
-      console.log(errors);
       throw new AppError(`Validation error: ${JSON.stringify(errors)}`, 400);
     }
   }
@@ -40,7 +38,6 @@ export const validateRequest = (req: Request, schemas: ValidationSchemas) => {
         field: err.path.join('.'),
         message: err.message,
       }));
-
       throw new AppError(`Validation error: ${JSON.stringify(errors)}`, 400);
     }
   }

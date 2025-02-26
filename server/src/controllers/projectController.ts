@@ -36,8 +36,8 @@ export const createProject = catchAsync(async (req, res, next) => {
     data: {
       name,
       description,
-      startDate,
-      endDate,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
       workspaceId,
       creatorId: user.id,
     },
