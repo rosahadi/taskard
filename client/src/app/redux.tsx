@@ -29,6 +29,8 @@ import authReducer from '@/store/authSlice';
 import globalReducer from '@/store/global';
 import workspaceReducer from '@/store/workspaceSlice';
 import { workspaceApi } from '@/store/workspaceApi';
+import { projectApi } from '@/store/projectApi';
+import { taskApi } from '@/store/taskApi';
 
 /* REDUX PERSISTENCE */
 const createNoopStorage = () => {
@@ -59,11 +61,13 @@ const persistConfig = {
 /* COMBINE REDUCERS */
 const rootReducer = combineReducers({
   global: globalReducer,
+  auth: authReducer,
   workspace: workspaceReducer,
   [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [workspaceApi.reducerPath]: workspaceApi.reducer,
-  auth: authReducer,
+  [projectApi.reducerPath]: projectApi.reducer,
+  [taskApi.reducerPath]: taskApi.reducer,
 });
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
@@ -79,7 +83,9 @@ export const makeStore = () => {
       }).concat(
         authApi.middleware,
         userApi.middleware,
-        workspaceApi.middleware
+        workspaceApi.middleware,
+        projectApi.middleware,
+        taskApi.middleware
       ),
   });
 };
