@@ -3,7 +3,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { projectFormSchema, ProjectFormValues } from '@/schemas/project';
-import { useCreateProjectMutation } from '@/store/projectApi';
+import {
+  useUpdateProjectMutation,
+  useGetProjectQuery,
+} from '@/store/projectApi';
 import {
   Dialog,
   DialogContent,
@@ -23,22 +26,32 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useEffect } from 'react';
 
-interface CreateProjectModalProps {
+interface EditProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  workspaceId: number | null;
+  projectId: number | null;
   onSuccess: () => void;
 }
 
-const CreateProjectModal = ({
+const EditProjectModal = ({
   open,
   onOpenChange,
-  workspaceId,
+  projectId,
   onSuccess,
-}: CreateProjectModalProps) => {
+}: EditProjectModalProps) => {
   const { toast } = useToast();
-  const [createProject, { isLoading: isCreating }] = useCreateProjectMutation();
+  const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation();
+
+  // Fetch project data using the useGetProjectQuery hook
+  const { data: projectData, isLoading: isProjectLoading } = useGetProjectQuery(
+    projectId!,
+    {
+      // Skip the query if projectId is null or modal is not open
+      skip: !projectId || !open,
+    }
+  );
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -50,33 +63,54 @@ const CreateProjectModal = ({
     },
   });
 
-  const handleCreateProject = async (data: ProjectFormValues) => {
-    if (!workspaceId) {
+  // Pre-fill the form with fetched project data
+  useEffect(() => {
+    if (projectData && open) {
+      const { name, description, startDate, endDate } = projectData.data;
+
+      // Convert Date objects to YYYY-MM-DD strings
+      const formattedStartDate = startDate
+        ? new Date(startDate).toISOString().split('T')[0]
+        : '';
+      const formattedEndDate = endDate
+        ? new Date(endDate).toISOString().split('T')[0]
+        : '';
+
+      form.reset({
+        name,
+        description: description || '',
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      });
+    }
+  }, [projectData, open, form]);
+
+  const handleUpdateProject = async (data: ProjectFormValues) => {
+    if (!projectId) {
       toast({
         title: 'Error',
-        description: 'No active workspace selected',
+        description: 'No project selected',
         variant: 'destructive',
       });
       return;
     }
 
     try {
-      await createProject({
-        ...data,
-        workspaceId,
+      await updateProject({
+        id: projectId,
+        body: data,
       }).unwrap();
 
       onOpenChange(false);
-      form.reset();
       toast({
         title: 'Success',
-        description: 'Project created successfully',
+        description: 'Project updated successfully',
       });
       onSuccess();
     } catch {
       toast({
         title: 'Error',
-        description: 'Failed to create project',
+        description: 'Failed to update project',
         variant: 'destructive',
       });
     }
@@ -87,16 +121,16 @@ const CreateProjectModal = ({
       <DialogContent className="bg-[--background-secondary] border-[--border]">
         <DialogHeader>
           <DialogTitle className="text-[--text-primary]">
-            Create New Project
+            Edit Project
           </DialogTitle>
           <DialogDescription className="text-[--text-muted]">
-            Fill in the details to create a new project
+            Update the details of the project
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(handleCreateProject)}
+            onSubmit={form.handleSubmit(handleUpdateProject)}
             className="space-y-4 py-2"
           >
             <FormField
@@ -195,10 +229,10 @@ const CreateProjectModal = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isCreating}
+                disabled={isUpdating || isProjectLoading}
                 className="bg-[--primary] hover:bg-[--primary-hover] text-white"
               >
-                {isCreating ? 'Creating...' : 'Create Project'}
+                {isUpdating ? 'Updating...' : 'Update Project'}
               </Button>
             </DialogFooter>
           </form>
@@ -208,4 +242,4 @@ const CreateProjectModal = ({
   );
 };
 
-export default CreateProjectModal;
+export default EditProjectModal;

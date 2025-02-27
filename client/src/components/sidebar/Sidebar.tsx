@@ -1,24 +1,36 @@
 'use client';
 import { useAppSelector } from '@/app/redux';
+import { useState } from 'react';
 import {
   Briefcase,
   ChevronDown,
   ChevronUp,
   Home,
   Layers3,
+  MoreVertical,
   Plus,
 } from 'lucide-react';
-
-import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import WorkspaceHeader from '../workspaceHeader/WorkspaceHeader';
 import { useGetAllProjectsQuery } from '@/store/projectApi';
 import CreateProjectModal from './CreateProjectModal';
 import SidebarHeader from './SidebarHeader';
 import SidebarLink from './SidebarLink';
+import EditProjectModal from './EditProjectModal';
+import DeleteProjectModal from './DeleteProjectModal';
 
 const Sidebar = () => {
   const [showProjects, setShowProjects] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editProjectId, setEditProjectId] = useState<number | null>(null);
 
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
@@ -103,13 +115,41 @@ const Sidebar = () => {
               projectsData?.data.map((project) => (
                 <div
                   key={project.id}
-                  className="group flex items-center justify-between px-8 py-3 hover:bg-[--background-tertiary]"
+                  className="group flex items-center justify-between hover:bg-[--background-tertiary]"
                 >
                   <SidebarLink
                     icon={Layers3}
                     label={project.name}
                     href={`/projects/${project.id}`}
                   />
+                  {/* Dropdown Menu for Edit/Delete */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 text-[--text-muted] opacity-0 group-hover:opacity-100 hover:text-[--text-primary]">
+                        <MoreVertical className="h-5 w-5" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[--background-secondary] border-[--border]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setEditProjectId(project.id);
+                          setShowEditDialog(true);
+                        }}
+                        className="cursor-pointer text-[--text-primary]"
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setProjectToDelete(project.id);
+                          setShowDeleteDialog(true);
+                        }}
+                        className="cursor-pointer text-[--status-danger]"
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))
             )}
@@ -122,6 +162,21 @@ const Sidebar = () => {
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         workspaceId={activeWorkspaceId}
+        onSuccess={() => refetch()}
+      />
+
+      <EditProjectModal
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        projectId={editProjectId}
+        onSuccess={() => refetch()}
+      />
+
+      {/* Delete Project Modal */}
+      <DeleteProjectModal
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        projectId={projectToDelete}
         onSuccess={() => refetch()}
       />
     </div>
