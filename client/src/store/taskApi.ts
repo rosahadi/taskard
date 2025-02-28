@@ -13,7 +13,7 @@ export interface Task {
   projectId: number;
   createdAt: string;
   updatedAt: string;
-  creatorId: number;
+  creatorId?: number;
   parentTaskId?: number;
   assignees?: TaskAssignee[];
   comments?: TaskComment[];
@@ -22,7 +22,6 @@ export interface Task {
 export interface TaskAssignee {
   id: number;
   user: {
-    id: number;
     name: string;
     email: string;
   };
@@ -121,13 +120,41 @@ export const taskApi = createApi({
 
     getAllTasks: builder.query<
       { status: string; data: Task[] },
-      { projectId: number }
+      { projectId?: number; workspaceId?: number }
     >({
-      query: ({ projectId }) => `/?projectId=${projectId}`,
-      providesTags: (result, error, { projectId }) => [
-        { type: 'Tasks', id: projectId },
+      query: ({ projectId, workspaceId }) => {
+        if (projectId) {
+          return `/?projectId=${projectId}`;
+        } else if (workspaceId) {
+          return `/user-tasks?workspaceId=${workspaceId}`;
+        } else {
+          return '/';
+        }
+      },
+      providesTags: (result, error, { projectId, workspaceId }) => [
+        { type: 'Tasks', id: projectId || workspaceId },
       ],
     }),
+
+    // getAllTasks: builder.query<
+    //   { status: string; data: Task[] },
+    //   { projectId: number }
+    // >({
+    //   query: ({ projectId }) => `/?projectId=${projectId}`,
+    //   providesTags: (result, error, { projectId }) => [
+    //     { type: 'Tasks', id: projectId },
+    //   ],
+    // }),
+
+    // getTasksForUserInWorkspace: builder.query<
+    //   { status: string; data: Task[] },
+    //   { workspaceId: number }
+    // >({
+    //   query: ({ workspaceId }) => `/user-tasks?workspaceId=${workspaceId}`,
+    //   providesTags: (result, error, { workspaceId }) => [
+    //     { type: 'Tasks', id: workspaceId },
+    //   ],
+    // }),
 
     getTask: builder.query<{ status: string; data: Task }, number>({
       query: (id) => `/${id}`,
@@ -223,6 +250,7 @@ export const taskApi = createApi({
 });
 
 export const {
+  // useGetTasksForUserInWorkspaceQuery,
   useCreateTaskMutation,
   useGetAllTasksQuery,
   useGetTaskQuery,
