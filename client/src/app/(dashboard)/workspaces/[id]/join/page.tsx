@@ -34,9 +34,6 @@ const WorkspaceInvitationPage = ({ params }: PageProps) => {
         return;
       }
 
-      console.log('Workspace ID:', workspaceId);
-      console.log('Token:', token);
-
       try {
         const result = await acceptInvitation({
           workspaceId: parseInt(workspaceId),

@@ -2,10 +2,9 @@
 import { useAppSelector } from '@/app/redux';
 import { useState } from 'react';
 import {
-  Briefcase,
+  CheckSquare,
   ChevronDown,
   ChevronUp,
-  Home,
   Layers3,
   MoreVertical,
   Plus,
@@ -55,6 +54,10 @@ const Sidebar = () => {
     ${isSidebarCollapsed ? 'w-0 hidden' : 'w-64'}
   `;
 
+  const workspaceBaseUrl = activeWorkspaceId
+    ? `/workspaces/${activeWorkspaceId}`
+    : '';
+
   return (
     <div className={sidebarClassNames}>
       <div className="flex h-[100%] w-full flex-col justify-start z-50">
@@ -66,8 +69,11 @@ const Sidebar = () => {
 
         {/* NAVBAR LINKS */}
         <nav className="z-10 w-full">
-          <SidebarLink icon={Home} label="Home" href="/" />
-          <SidebarLink icon={Briefcase} label="Timeline" href="/timeline" />
+          <SidebarLink
+            icon={CheckSquare}
+            label="My Tasks"
+            href={`${workspaceBaseUrl}/my-tasks`}
+          />
         </nav>
 
         {/* PROJECTS LINKS */}
@@ -120,7 +126,7 @@ const Sidebar = () => {
                   <SidebarLink
                     icon={Layers3}
                     label={project.name}
-                    href={`/projects/${project.id}`}
+                    href={`${workspaceBaseUrl}/projects/${project.id}`}
                   />
                   {/* Dropdown Menu for Edit/Delete */}
                   <DropdownMenu>
