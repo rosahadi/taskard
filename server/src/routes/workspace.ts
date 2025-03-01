@@ -55,5 +55,9 @@ workspaceRouter.delete(
   '/members/:memberId',
   workspaceMembersController.removeMember
 );
+workspaceRouter.get(
+  '/:workspaceId/members/search',
+  workspaceMembersController.searchWorkspaceMembers
+);
 
 export default workspaceRouter;

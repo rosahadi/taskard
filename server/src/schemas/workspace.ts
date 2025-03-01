@@ -52,3 +52,18 @@ export const removeMemberSchema = z.object({
       message: 'Member ID must be a positive integer',
     }),
 });
+
+export const searchWorkspaceMembersSchema = z.object({
+  params: z.object({
+    workspaceId: z.coerce
+      .number()
+      .int()
+      .positive()
+      .refine((val) => val > 0, {
+        message: 'Workspace ID must be a positive integer',
+      }),
+  }),
+  query: z.object({
+    query: z.string().min(1, 'Search query is required').trim(),
+  }),
+});

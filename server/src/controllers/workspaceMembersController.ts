@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { Prisma, PrismaClient, Role } from '@prisma/client';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
@@ -6,6 +6,7 @@ import { validateRequest } from '../utils/validateRequest';
 import {
   getWorkspaceMembersSchema,
   removeMemberSchema,
+  searchWorkspaceMembersSchema,
   updateMemberRoleSchema,
 } from '../schemas/workspace';
 
@@ -165,5 +166,84 @@ export const removeMember = catchAsync(async (req, res, next) => {
   res.status(204).json({
     status: 'success',
     data: null,
+  });
+});
+
+// Search workspace members by name or email
+export const searchWorkspaceMembers = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: searchWorkspaceMembersSchema.shape.params,
+    query: searchWorkspaceMembersSchema.shape.query,
+  });
+
+  const { workspaceId } = req.params;
+  const { query } = req.query;
+
+  const user = await currentUser(req);
+
+  // Check if user has access to workspace
+  const hasAccess = await prisma.workspaceMember.findFirst({
+    where: {
+      workspaceId: parseInt(workspaceId),
+      userId: user.id,
+    },
+  });
+
+  const isOwner = await prisma.workspace.findFirst({
+    where: {
+      id: parseInt(workspaceId),
+      ownerId: user.id,
+    },
+  });
+
+  if (!hasAccess && !isOwner) {
+    return next(new AppError('Access denied to this workspace', 403));
+  }
+
+  let whereCondition: Prisma.WorkspaceMemberWhereInput = {
+    workspaceId: parseInt(workspaceId),
+  };
+
+  if (query) {
+    whereCondition = {
+      ...whereCondition,
+      OR: [
+        {
+          user: {
+            name: {
+              contains: query as string,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          user: {
+            email: {
+              contains: query as string,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  const members = await prisma.workspaceMember.findMany({
+    where: whereCondition,
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+    },
+    take: 10,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: members,
   });
 });
