@@ -1,7 +1,24 @@
-import { Calendar, Filter, Grid3x3, List, Plus, Search } from 'lucide-react';
+import {
+  Calendar,
+  Filter,
+  Grid3x3,
+  List,
+  Plus,
+  Search,
+  Flag,
+} from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import CreateTaskDialog from './components/CreateTaskDialog';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select';
+import { Priority, TaskStatus } from '@/store/taskApi';
+import { formatPriority, formatStatus } from './utils';
 
 type Props = {
   projectName: string;
@@ -10,6 +27,12 @@ type Props = {
   activeTab: string;
   setActiveTab: (tabName: string) => void;
   projectId: number;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedStatus: string;
+  setSelectedStatus: (status: string) => void;
+  selectedPriority: string;
+  setSelectedPriority: (priority: string) => void;
 };
 
 const ProjectHeader = ({
@@ -19,6 +42,12 @@ const ProjectHeader = ({
   activeTab,
   setActiveTab,
   projectId,
+  searchTerm,
+  setSearchTerm,
+  selectedStatus,
+  setSelectedStatus,
+  selectedPriority,
+  setSelectedPriority,
 }: Props) => {
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'Not set';
@@ -29,8 +58,6 @@ const ProjectHeader = ({
       return 'Invalid date';
     }
   };
-
-  console.log(projectId);
 
   const formattedStartDate = formatDate(startDate);
   const formattedEndDate = formatDate(endDate);
@@ -73,27 +100,73 @@ const ProjectHeader = ({
             activeTab={activeTab}
           />
         </div>
-        <div className="flex items-center gap-4">
-          <button className="text-[var(--text-muted)] hover:text-[var(--primary)]">
-            <Filter className="h-5 w-5" />
-          </button>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search Task"
-              className="rounded-md border border-[var(--card-border)] bg-[var(--card)] py-1 pl-10 pr-4 text-[var(--text-primary)] focus:outline-none"
+
+        {/* Search and filter bar */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={18}
             />
-            <Search className="absolute left-3 top-2 h-4 w-4 text-[var(--text-muted)]" />
+            <Input
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
           </div>
-          <CreateTaskDialog projectId={projectId}>
-            <Button
-              className="bg-[var(--button-bg)] hover:bg-[var(--button-hover)] text-[var(--button-text)]"
-              size="sm"
+
+          <div className="flex gap-2">
+            <Select
+              onValueChange={setSelectedStatus}
+              value={selectedStatus || 'NONE'}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Create Task
-            </Button>
-          </CreateTaskDialog>
+              <SelectTrigger className="w-[150px]">
+                <div className="flex items-center gap-2">
+                  <Filter size={16} />
+                  <span>{selectedStatus || 'Status'}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                {Object.values(TaskStatus).map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {formatStatus(status)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={setSelectedPriority}
+              value={selectedPriority || 'NONE'}
+            >
+              <SelectTrigger className="w-[150px]">
+                <div className="flex items-center gap-2">
+                  <Flag size={16} />
+                  <span>{selectedPriority || 'Priority'}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Priorities</SelectItem>
+                {Object.values(Priority).map((priority) => (
+                  <SelectItem key={priority} value={priority}>
+                    {formatPriority(priority)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <CreateTaskDialog projectId={projectId}>
+              <Button
+                className="bg-[var(--button-bg)] hover:bg-[var(--button-hover)] text-[var(--button-text)]"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Task
+              </Button>
+            </CreateTaskDialog>
+          </div>
         </div>
       </div>
     </div>
