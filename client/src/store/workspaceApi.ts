@@ -183,6 +183,19 @@ export const workspaceApi = createApi({
         { type: 'Workspace', id: workspaceId },
       ],
     }),
+
+    searchWorkspaceMembers: builder.query<
+      { status: string; data: WorkspaceMember[] },
+      { workspaceId: number; query?: string }
+    >({
+      query: ({ workspaceId, query }) => ({
+        url: `/${workspaceId}/members/search`,
+        params: { query },
+      }),
+      providesTags: (result, error, { workspaceId }) => [
+        { type: 'WorkspaceMembers', id: workspaceId },
+      ],
+    }),
   }),
 });
 
@@ -197,4 +210,5 @@ export const {
   useGetWorkspaceMembersQuery,
   useUpdateMemberRoleMutation,
   useRemoveMemberMutation,
+  useSearchWorkspaceMembersQuery,
 } = workspaceApi;
