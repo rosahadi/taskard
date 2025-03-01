@@ -21,7 +21,9 @@ export interface Task {
 
 export interface TaskAssignee {
   id: number;
+  userId: number;
   user: {
+    id: number;
     name: string;
     email: string;
   };
@@ -80,6 +82,7 @@ export interface UpdateTaskRequest {
   dueDate?: string;
   points?: number;
   parentTaskId?: number | null;
+  assigneeIds?: number[];
 }
 
 export interface AssignTaskRequest {
@@ -118,43 +121,43 @@ export const taskApi = createApi({
       invalidatesTags: ['Tasks'],
     }),
 
+    // getAllTasks: builder.query<
+    //   { status: string; data: Task[] },
+    //   { projectId?: number; workspaceId?: number }
+    // >({
+    //   query: ({ projectId, workspaceId }) => {
+    //     if (projectId) {
+    //       return `/?projectId=${projectId}`;
+    //     } else if (workspaceId) {
+    //       return `/user-tasks?workspaceId=${workspaceId}`;
+    //     } else {
+    //       return '/';
+    //     }
+    //   },
+    //   providesTags: (result, error, { projectId, workspaceId }) => [
+    //     { type: 'Tasks', id: projectId || workspaceId },
+    //   ],
+    // }),
+
     getAllTasks: builder.query<
       { status: string; data: Task[] },
-      { projectId?: number; workspaceId?: number }
+      { projectId: number }
     >({
-      query: ({ projectId, workspaceId }) => {
-        if (projectId) {
-          return `/?projectId=${projectId}`;
-        } else if (workspaceId) {
-          return `/user-tasks?workspaceId=${workspaceId}`;
-        } else {
-          return '/';
-        }
-      },
-      providesTags: (result, error, { projectId, workspaceId }) => [
-        { type: 'Tasks', id: projectId || workspaceId },
+      query: ({ projectId }) => `/?projectId=${projectId}`,
+      providesTags: (result, error, { projectId }) => [
+        { type: 'Tasks', id: projectId },
       ],
     }),
 
-    // getAllTasks: builder.query<
-    //   { status: string; data: Task[] },
-    //   { projectId: number }
-    // >({
-    //   query: ({ projectId }) => `/?projectId=${projectId}`,
-    //   providesTags: (result, error, { projectId }) => [
-    //     { type: 'Tasks', id: projectId },
-    //   ],
-    // }),
-
-    // getTasksForUserInWorkspace: builder.query<
-    //   { status: string; data: Task[] },
-    //   { workspaceId: number }
-    // >({
-    //   query: ({ workspaceId }) => `/user-tasks?workspaceId=${workspaceId}`,
-    //   providesTags: (result, error, { workspaceId }) => [
-    //     { type: 'Tasks', id: workspaceId },
-    //   ],
-    // }),
+    getTasksForUserInWorkspace: builder.query<
+      { status: string; data: Task[] },
+      { workspaceId: number }
+    >({
+      query: ({ workspaceId }) => `/user-tasks?workspaceId=${workspaceId}`,
+      providesTags: (result, error, { workspaceId }) => [
+        { type: 'Tasks', id: workspaceId },
+      ],
+    }),
 
     getTask: builder.query<{ status: string; data: Task }, number>({
       query: (id) => `/${id}`,

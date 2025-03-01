@@ -35,6 +35,9 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { formatPriority, formatStatus } from '../utils';
+import MemberSelector from './MemberSelector';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/redux';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -65,6 +68,7 @@ const CreateTaskDialog = ({
   defaultStatus = TaskStatus.TODO,
 }: CreateTaskDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
   const { toast } = useToast();
   const [createTask, { isLoading }] = useCreateTaskMutation();
 
@@ -80,19 +84,36 @@ const CreateTaskDialog = ({
     },
   });
 
-  console.log(projectId);
+  const activeWorkspaceId = useSelector(
+    (state: RootState) => state.workspace.activeWorkspaceId
+  );
+
+  const workspaceId = activeWorkspaceId ? Number(activeWorkspaceId) : 0;
+
+  if (!workspaceId) {
+    return (
+      <div className="p-4 text-destructive">No active workspace selected</div>
+    );
+  }
 
   const onSubmit = async (data: TaskFormValues) => {
     try {
-      await createTask({ ...data, projectId, parentTaskId }).unwrap();
+      await createTask({
+        ...data,
+        projectId,
+        parentTaskId,
+        assigneeIds:
+          selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
+      }).unwrap();
+
       toast({
         title: 'Task created',
         description: 'The task has been successfully created.',
       });
       form.reset();
+      setSelectedMemberIds([]);
       setOpen(false);
-    } catch (error) {
-      console.log(error);
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to create task',
@@ -104,7 +125,7 @@ const CreateTaskDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[--background-quaternary]">
         <DialogHeader>
           <DialogTitle>
             {parentTaskId ? 'Create Subtask' : 'Create Task'}
@@ -196,43 +217,55 @@ const CreateTaskDialog = ({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Due Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="points"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Points</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="0"
-                      placeholder="Estimate points"
-                      value={field.value ?? ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const numberValue =
-                          val.trim() === '' ? undefined : Number(val);
-                        field.onChange(numberValue);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="points"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Points</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Estimate points"
+                        value={field.value ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const numberValue =
+                            val.trim() === '' ? undefined : Number(val);
+                          field.onChange(numberValue);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormItem>
+              <FormLabel>Assignees</FormLabel>
+              <MemberSelector
+                workspaceId={workspaceId}
+                selectedMemberIds={selectedMemberIds}
+                onChange={setSelectedMemberIds}
+                disabled={isLoading}
+              />
+            </FormItem>
 
             <DialogFooter>
               <Button

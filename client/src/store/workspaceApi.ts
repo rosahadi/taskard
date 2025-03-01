@@ -17,7 +17,9 @@ export interface Workspace {
 export interface WorkspaceMember {
   id: number;
   role: Role;
+  userId: number;
   user: {
+    id?: number;
     name: string;
     email: string;
     image?: string;
@@ -47,6 +49,7 @@ export interface WorkspaceInvite {
 
 export interface WorkspaceMemberDetails extends WorkspaceMember {
   user: {
+    id: number;
     name: string;
     email: string;
     image?: string;

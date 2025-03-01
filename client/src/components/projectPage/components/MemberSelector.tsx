@@ -8,7 +8,6 @@ import {
 import { CheckIcon, PlusCircle, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  useGetWorkspaceMembersQuery,
   useSearchWorkspaceMembersQuery,
   WorkspaceMember,
 } from '@/store/workspaceApi';
@@ -32,17 +31,7 @@ const MemberSelector = ({
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery, 300);
 
-  // Use the search endpoint when there's a query, otherwise use the regular endpoint
-  const useSearchQuery = debouncedQuery.length > 0;
-
-  const {
-    data: membersResponse,
-    isLoading: isLoadingAll,
-    error: errorAll,
-  } = useGetWorkspaceMembersQuery(workspaceId, {
-    skip: !workspaceId || isNaN(workspaceId) || useSearchQuery,
-  });
-
+  // Only fetch members when searching
   const {
     data: searchResponse,
     isLoading: isLoadingSearch,
@@ -50,78 +39,56 @@ const MemberSelector = ({
   } = useSearchWorkspaceMembersQuery(
     { workspaceId, query: debouncedQuery },
     {
-      skip: !workspaceId || isNaN(workspaceId) || !useSearchQuery,
+      skip: !workspaceId || isNaN(workspaceId) || debouncedQuery.length === 0,
     }
   );
-
-  // Determine which data set to use
-  const data = useSearchQuery ? searchResponse : membersResponse;
-  const isLoading = useSearchQuery ? isLoadingSearch : isLoadingAll;
-  const error = useSearchQuery ? errorSearch : errorAll;
 
   // Initialize with an empty array
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
   useEffect(() => {
-    if (error) {
-      console.error('Error fetching workspace members:', error);
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (data?.status === 'success' && Array.isArray(data.data)) {
-      setMembers(data.data);
+    if (
+      searchResponse?.status === 'success' &&
+      Array.isArray(searchResponse.data)
+    ) {
+      setMembers(searchResponse.data);
     } else {
       setMembers([]);
     }
-  }, [data]);
+  }, [searchResponse]);
 
   useEffect(() => {
     if (disabled) setOpen(false);
   }, [disabled]);
 
-  const toggleMember = (memberId: number) => {
+  const toggleMember = (userId: number) => {
     onChange(
-      selectedMemberIds.includes(memberId)
-        ? selectedMemberIds.filter((id) => id !== memberId)
-        : [...selectedMemberIds, memberId]
+      selectedMemberIds.includes(userId)
+        ? selectedMemberIds.filter((id) => id !== userId)
+        : [...selectedMemberIds, userId]
     );
   };
 
-  const removeMember = (e: React.MouseEvent, memberId: number) => {
+  const removeMember = (e: React.MouseEvent, userId: number) => {
     e.stopPropagation();
-    onChange(selectedMemberIds.filter((id) => id !== memberId));
+    onChange(selectedMemberIds.filter((id) => id !== userId));
   };
 
   // Get user info for the selected members
-  const getSelectedMemberDetails = (memberId: number) => {
-    const member = members.find((m) => m.id === memberId);
+  const getSelectedMemberDetails = (userId: number) => {
+    const member = members.find((m) => m.userId === userId);
     return member || null;
-  };
-
-  const getAvatarInitial = (member: WorkspaceMember | null) => {
-    if (!member) return '?';
-
-    if (member.user?.name) {
-      return member.user.name.charAt(0).toUpperCase();
-    }
-
-    if (member.id !== undefined && member.id !== null) {
-      return String(member.id).charAt(0);
-    }
-
-    return '?';
   };
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2 mb-2">
-        {selectedMemberIds.map((memberId) => {
-          const member = getSelectedMemberDetails(memberId);
+        {selectedMemberIds.map((userId) => {
+          const member = getSelectedMemberDetails(userId);
           if (!member) return null;
           return (
             <Badge
-              key={memberId}
+              key={userId}
               variant="secondary"
               className="flex items-center gap-1.5 py-1 pl-1 pr-2"
             >
@@ -135,18 +102,18 @@ const MemberSelector = ({
                   />
                 ) : (
                   <AvatarFallback className="text-xs">
-                    {getAvatarInitial(member)}
+                    {member.user?.name?.charAt(0).toUpperCase() || '?'}
                   </AvatarFallback>
                 )}
               </Avatar>
               <span className="text-xs">
-                {member.user?.name || `Member ${member.id}`}
+                {member.user?.name || `User ${userId}`}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-4 w-4 p-0 ml-1"
-                onClick={(e) => removeMember(e, memberId)}
+                onClick={(e) => removeMember(e, userId)}
                 disabled={disabled}
               >
                 <X className="h-3 w-3" />
@@ -180,51 +147,52 @@ const MemberSelector = ({
             </div>
 
             <div className="max-h-60 overflow-y-auto">
-              {isLoading ? (
+              {isLoadingSearch ? (
                 <div className="flex items-center justify-center p-4">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   <span>Loading members...</span>
                 </div>
-              ) : error ? (
+              ) : errorSearch ? (
                 <div className="p-2 text-sm text-destructive">
                   Error loading members
                 </div>
               ) : (
                 <div className="py-1">
                   {members.map((member) => {
-                    if (!member || member.id === undefined) return null;
+                    if (!member || member.userId === undefined) return null;
 
                     return (
                       <div
-                        key={member.id}
+                        key={member.userId}
                         className="flex items-center px-2 py-1.5 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                        onClick={() => toggleMember(member.id)}
+                        onClick={() => toggleMember(member.userId)}
                       >
                         <Avatar className="h-6 w-6 mr-2">
                           {member.user?.image ? (
                             <AvatarImage
                               src={member.user.image}
-                              alt={member.user?.name || `Member ${member.id}`}
+                              alt={member.user?.name || `User ${member.userId}`}
                               className="object-cover"
                               referrerPolicy="no-referrer"
                             />
                           ) : (
                             <AvatarFallback>
-                              {getAvatarInitial(member)}
+                              {member.user?.name?.charAt(0).toUpperCase() ||
+                                '?'}
                             </AvatarFallback>
                           )}
                         </Avatar>
                         <span className="flex-grow">
-                          {member.user?.name || `Member ${member.id}`}
+                          {member.user?.name || `User ${member.userId}`}
                         </span>
-                        {selectedMemberIds.includes(member.id) && (
+                        {selectedMemberIds.includes(member.userId) && (
                           <CheckIcon className="h-4 w-4 text-primary" />
                         )}
                       </div>
                     );
                   })}
 
-                  {members.length === 0 && (
+                  {members.length === 0 && debouncedQuery.length > 0 && (
                     <div className="p-2 text-sm text-muted-foreground text-center">
                       No members found
                     </div>
