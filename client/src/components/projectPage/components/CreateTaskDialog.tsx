@@ -275,7 +275,11 @@ const CreateTaskDialog = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="bg-buttonBg text-buttonText"
+                disabled={isLoading}
+              >
                 {isLoading
                   ? 'Creating...'
                   : `Create ${parentTaskId ? 'Subtask' : 'Task'}`}

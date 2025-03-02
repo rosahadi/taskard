@@ -53,7 +53,7 @@ const taskSchema = z.object({
     if (typeof val === 'string' && val.trim() === '') return undefined;
     const num = Number(val);
     return isNaN(num) ? undefined : num;
-  }, z.number().optional()), // Keep points as optional
+  }, z.number().optional()),
 });
 
 interface EditTaskDialogProps {
@@ -71,6 +71,7 @@ const EditTaskDialog = ({ children, task }: EditTaskDialogProps) => {
     }) || []
   );
   const [updateTask, { isLoading }] = useUpdateTaskMutation();
+
   const { toast } = useToast();
 
   const activeWorkspaceId = useSelector(
@@ -126,7 +127,7 @@ const EditTaskDialog = ({ children, task }: EditTaskDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[--background-quaternary]">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
           <DialogDescription>Make changes to your task.</DialogDescription>
@@ -275,7 +276,11 @@ const EditTaskDialog = ({ children, task }: EditTaskDialogProps) => {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="bg-buttonBg text-buttonText"
+                disabled={isLoading}
+              >
                 {isLoading ? 'Updating...' : 'Save Changes'}
               </Button>
             </DialogFooter>
