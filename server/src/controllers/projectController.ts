@@ -129,6 +129,7 @@ export const getProject = catchAsync(async (req, res, next) => {
                 select: {
                   name: true,
                   email: true,
+                  image: true,
                 },
               },
             },

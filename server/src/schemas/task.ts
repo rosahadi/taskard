@@ -1,3 +1,4 @@
+import { Priority, TaskStatus } from '@prisma/client';
 import { z } from 'zod';
 
 const TaskStatusEnum = z.enum([
@@ -63,6 +64,7 @@ export const updateTaskSchema = z.object({
     dueDate: z.string().optional(),
     points: z.number().int().positive().optional(),
     parentTaskId: z.number().int().positive().optional().nullable(),
+    assigneeIds: z.array(z.number().int().positive()).optional(),
   }),
 });
 
@@ -74,6 +76,35 @@ export const deleteTaskSchema = z.object({
     .refine((val) => val > 0, {
       message: 'Task ID must be a positive integer',
     }),
+});
+
+export const searchTasksSchema = z.object({
+  projectId: z.coerce
+    .number()
+    .int()
+    .positive()
+    .refine((val) => val > 0, {
+      message: 'Project ID must be a positive integer',
+    }),
+  searchTerm: z.string().optional(),
+  status: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || Object.values(TaskStatus).includes(val as TaskStatus),
+      {
+        message: 'Invalid task status',
+      }
+    ),
+  priority: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || Object.values(Priority).includes(val as Priority),
+      {
+        message: 'Invalid priority level',
+      }
+    ),
 });
 
 export const assignTaskSchema = z.object({

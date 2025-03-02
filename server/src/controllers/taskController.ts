@@ -1,4 +1,4 @@
-import { Priority, PrismaClient, TaskStatus } from '@prisma/client';
+import { PrismaClient, TaskStatus, Priority } from '@prisma/client';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
@@ -9,9 +9,11 @@ import {
   deleteTaskSchema,
   getAllTasksSchema,
   getTaskSchema,
+  searchTasksSchema,
   unassignTaskSchema,
   updateTaskSchema,
 } from '../schemas/task';
+import PrismaFeatures from '../utils/PrismaFeatures';
 
 const prisma = new PrismaClient();
 
@@ -32,6 +34,8 @@ export const createTask = catchAsync(async (req, res, next) => {
     parentTaskId,
     assigneeIds,
   } = req.body;
+
+  console.log(req.body);
 
   // Check if user has access to the project
   const project = await prisma.project.findFirst({
@@ -133,6 +137,7 @@ export const createTask = catchAsync(async (req, res, next) => {
             select: {
               name: true,
               email: true,
+              image: true,
             },
           },
         },
@@ -158,8 +163,10 @@ export const createTask = catchAsync(async (req, res, next) => {
         include: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
+              image: true,
             },
           },
         },
@@ -179,7 +186,6 @@ export const getAllTasks = catchAsync(async (req, res, next) => {
   const user = await currentUser(req);
   const { projectId } = req.query;
 
-  // See if user has access to project
   const project = await prisma.project.findFirst({
     where: {
       id: Number(projectId),
@@ -197,24 +203,32 @@ export const getAllTasks = catchAsync(async (req, res, next) => {
     return next(new AppError('Project not found or access denied', 404));
   }
 
-  // Fetch all tasks for the project
-  const tasks = await prisma.task.findMany({
-    where: {
-      projectId: Number(projectId),
-    },
-    include: {
-      assignees: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
+  // Create the base query
+  const features = new PrismaFeatures(prisma.task, req.query).filter().sort();
+
+  // Set initial where condition
+  features.query.where = {
+    ...features.query.where,
+    projectId: Number(projectId),
+  };
+
+  // Add include
+  features.query.include = {
+    assignees: {
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
           },
         },
       },
     },
-  });
+  };
+
+  const tasks = await features.execute();
 
   res.status(200).json({
     status: 'success',
@@ -248,6 +262,7 @@ export const getTask = catchAsync(async (req, res, next) => {
               id: true,
               name: true,
               email: true,
+              image: true,
             },
           },
         },
@@ -285,6 +300,103 @@ export const getTask = catchAsync(async (req, res, next) => {
   });
 });
 
+export const searchTasks = catchAsync(async (req, res, next) => {
+  validateRequest(req, { query: searchTasksSchema });
+
+  const user = await currentUser(req);
+  const { projectId, searchTerm, status, priority } = req.query;
+
+  const project = await prisma.project.findFirst({
+    where: {
+      id: Number(projectId),
+      workspace: {
+        members: {
+          some: {
+            userId: user.id,
+          },
+        },
+      },
+    },
+  });
+
+  if (!project) {
+    return next(new AppError('Project not found or access denied', 404));
+  }
+
+  //Search filters
+  const whereConditions: {
+    projectId: number;
+    OR?: Array<
+      | { title: { contains: string; mode: 'insensitive' } }
+      | { description: { contains: string; mode: 'insensitive' } }
+    >;
+    status?: TaskStatus;
+    priority?: Priority;
+  } = {
+    projectId: Number(projectId),
+  };
+
+  // search in title and description
+  if (searchTerm && typeof searchTerm === 'string') {
+    whereConditions.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
+    ];
+  }
+
+  // Add status filter
+  if (
+    status &&
+    typeof status === 'string' &&
+    status !== 'ALL' &&
+    Object.values(TaskStatus).includes(status as TaskStatus)
+  ) {
+    whereConditions.status = status as TaskStatus;
+  }
+
+  // Add priority filter
+  if (
+    priority &&
+    typeof priority === 'string' &&
+    priority !== 'ALL' &&
+    Object.values(Priority).includes(priority as Priority)
+  ) {
+    whereConditions.priority = priority as Priority;
+  }
+
+  const tasks = await prisma.task.findMany({
+    where: whereConditions,
+    include: {
+      assignees: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
+        },
+      },
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tasks.length,
+    data: tasks,
+  });
+});
+
 export const updateTask = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: updateTaskSchema.shape.params,
@@ -292,7 +404,7 @@ export const updateTask = catchAsync(async (req, res, next) => {
   });
 
   const user = await currentUser(req);
-  const { taskId } = req.params;
+  const taskId: number = parseInt(req.params.taskId, 10);
   const {
     title,
     description,
@@ -303,12 +415,24 @@ export const updateTask = catchAsync(async (req, res, next) => {
     dueDate,
     points,
     parentTaskId,
+    assigneeIds,
+  }: {
+    title?: string;
+    description?: string;
+    status?: TaskStatus;
+    priority?: Priority;
+    tags?: string[];
+    startDate?: string;
+    dueDate?: string;
+    points?: number;
+    parentTaskId?: number;
+    assigneeIds?: number[];
   } = req.body;
 
   // Check if user has access to the task
   const task = await prisma.task.findFirst({
     where: {
-      id: parseInt(taskId),
+      id: taskId,
       project: {
         workspace: {
           members: {
@@ -320,6 +444,7 @@ export const updateTask = catchAsync(async (req, res, next) => {
       },
     },
     include: {
+      assignees: true,
       project: true,
     },
   });
@@ -328,7 +453,7 @@ export const updateTask = catchAsync(async (req, res, next) => {
     return next(new AppError('Task not found or access denied', 404));
   }
 
-  // Check if parent task exists in the same project if provided
+  // Validate parent task
   if (parentTaskId && parentTaskId !== task.parentTaskId) {
     const parentTask = await prisma.task.findFirst({
       where: {
@@ -340,16 +465,14 @@ export const updateTask = catchAsync(async (req, res, next) => {
     if (!parentTask) {
       return next(new AppError('Parent task not found in this project', 404));
     }
-
-    if (parentTaskId === parseInt(taskId)) {
+    if (parentTaskId === taskId) {
       return next(new AppError('Task cannot be its own parent', 400));
     }
   }
 
+  // Update task details
   const updatedTask = await prisma.task.update({
-    where: {
-      id: parseInt(taskId),
-    },
+    where: { id: taskId },
     data: {
       title,
       description,
@@ -366,6 +489,7 @@ export const updateTask = catchAsync(async (req, res, next) => {
         include: {
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
             },
@@ -374,6 +498,39 @@ export const updateTask = catchAsync(async (req, res, next) => {
       },
     },
   });
+
+  // Backend logic to validate and update task assignments
+  if (assigneeIds) {
+    // Validate assigneeIds
+    const validUsers = await prisma.user.findMany({
+      where: {
+        id: { in: assigneeIds },
+      },
+    });
+
+    if (validUsers.length !== assigneeIds.length) {
+      throw new Error('One or more assignee IDs are invalid');
+    }
+
+    // Remove existing assignments that are not in the new list
+    await prisma.taskAssignment.deleteMany({
+      where: {
+        taskId: taskId,
+        userId: { notIn: assigneeIds },
+      },
+    });
+
+    // Add new assignees
+    const existingAssigneeIds = task.assignees.map((a) => a.userId);
+    const newAssignees = assigneeIds.filter(
+      (id) => !existingAssigneeIds.includes(id)
+    );
+
+    await prisma.taskAssignment.createMany({
+      data: newAssignees.map((userId: number) => ({ taskId: taskId, userId })),
+      skipDuplicates: true,
+    });
+  }
 
   res.status(200).json({
     status: 'success',
@@ -498,6 +655,7 @@ export const assignTask = catchAsync(async (req, res, next) => {
           id: true,
           name: true,
           email: true,
+          image: true,
         },
       },
       task: {

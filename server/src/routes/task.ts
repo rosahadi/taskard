@@ -18,6 +18,8 @@ taskRouter
   .patch(taskController.updateTask)
   .delete(taskController.deleteTask);
 
+taskRouter.get('/search', taskController.searchTasks);
+
 // Task assignments
 taskRouter.post('/assign', taskController.assignTask);
 taskRouter.post('/unassign', taskController.unassignTask);
