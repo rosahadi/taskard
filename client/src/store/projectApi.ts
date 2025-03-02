@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Task } from './taskApi';
 
 export interface Project {
   id: number;
@@ -18,22 +19,6 @@ export interface Project {
     name: string;
   };
   tasks?: Task[];
-}
-
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: Priority;
-  tags: string[];
-  startDate?: string;
-  dueDate?: string;
-  points?: number;
-  projectId: number;
-  createdAt: string;
-  updatedAt: string;
-  assignees?: TaskAssignee[];
 }
 
 export interface TaskAssignee {

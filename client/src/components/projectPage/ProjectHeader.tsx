@@ -124,7 +124,11 @@ const ProjectHeader = ({
               <SelectTrigger className="w-[150px]">
                 <div className="flex items-center gap-2">
                   <Filter size={16} />
-                  <span>{selectedStatus || 'Status'}</span>
+                  <span>
+                    {selectedStatus === 'ALL'
+                      ? 'All Statuses'
+                      : formatStatus(selectedStatus)}
+                  </span>
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -144,7 +148,11 @@ const ProjectHeader = ({
               <SelectTrigger className="w-[150px]">
                 <div className="flex items-center gap-2">
                   <Flag size={16} />
-                  <span>{selectedPriority || 'Priority'}</span>
+                  <span>
+                    {selectedPriority === 'ALL'
+                      ? 'All Priority'
+                      : formatStatus(selectedPriority)}
+                  </span>
                 </div>
               </SelectTrigger>
               <SelectContent>

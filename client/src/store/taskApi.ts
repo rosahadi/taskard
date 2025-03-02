@@ -26,6 +26,7 @@ export interface TaskAssignee {
     id: number;
     name: string;
     email: string;
+    image?: string;
   };
 }
 
@@ -100,6 +101,13 @@ export interface AddCommentRequest {
   content: string;
 }
 
+export interface SearchTasksParams {
+  projectId: number;
+  searchTerm?: string;
+  status?: string;
+  priority?: string;
+}
+
 export const taskApi = createApi({
   reducerPath: 'taskApi',
   baseQuery: fetchBaseQuery({
@@ -119,49 +127,6 @@ export const taskApi = createApi({
         body,
       }),
       invalidatesTags: ['Tasks'],
-    }),
-
-    // getAllTasks: builder.query<
-    //   { status: string; data: Task[] },
-    //   { projectId?: number; workspaceId?: number }
-    // >({
-    //   query: ({ projectId, workspaceId }) => {
-    //     if (projectId) {
-    //       return `/?projectId=${projectId}`;
-    //     } else if (workspaceId) {
-    //       return `/user-tasks?workspaceId=${workspaceId}`;
-    //     } else {
-    //       return '/';
-    //     }
-    //   },
-    //   providesTags: (result, error, { projectId, workspaceId }) => [
-    //     { type: 'Tasks', id: projectId || workspaceId },
-    //   ],
-    // }),
-
-    getAllTasks: builder.query<
-      { status: string; data: Task[] },
-      { projectId: number }
-    >({
-      query: ({ projectId }) => `/?projectId=${projectId}`,
-      providesTags: (result, error, { projectId }) => [
-        { type: 'Tasks', id: projectId },
-      ],
-    }),
-
-    getTasksForUserInWorkspace: builder.query<
-      { status: string; data: Task[] },
-      { workspaceId: number }
-    >({
-      query: ({ workspaceId }) => `/user-tasks?workspaceId=${workspaceId}`,
-      providesTags: (result, error, { workspaceId }) => [
-        { type: 'Tasks', id: workspaceId },
-      ],
-    }),
-
-    getTask: builder.query<{ status: string; data: Task }, number>({
-      query: (id) => `/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Task', id }],
     }),
 
     updateTask: builder.mutation<
@@ -249,14 +214,28 @@ export const taskApi = createApi({
         { type: 'TaskComments', id: commentId },
       ],
     }),
+
+    searchTasks: builder.query<
+      { status: string; data: Task[] },
+      SearchTasksParams
+    >({
+      query: ({ projectId, searchTerm = '', status = '', priority = '' }) => ({
+        url: '/search',
+        params: {
+          projectId,
+          searchTerm,
+          status,
+          priority,
+          taskId: 0,
+        },
+      }),
+      providesTags: ['Task'],
+    }),
   }),
 });
 
 export const {
-  // useGetTasksForUserInWorkspaceQuery,
   useCreateTaskMutation,
-  useGetAllTasksQuery,
-  useGetTaskQuery,
   useUpdateTaskMutation,
   useDeleteTaskMutation,
   useAssignTaskMutation,
@@ -264,4 +243,5 @@ export const {
   useAddCommentMutation,
   useGetTaskCommentsQuery,
   useDeleteCommentMutation,
+  useSearchTasksQuery,
 } = taskApi;
