@@ -12,13 +12,14 @@ taskRouter
   .route('/')
   .post(taskController.createTask)
   .get(taskController.getAllTasks);
+
+taskRouter.get('/search', taskController.searchTasks);
+
 taskRouter
   .route('/:taskId')
   .get(taskController.getTask)
   .patch(taskController.updateTask)
   .delete(taskController.deleteTask);
-
-taskRouter.get('/search', taskController.searchTasks);
 
 // Task assignments
 taskRouter.post('/assign', taskController.assignTask);

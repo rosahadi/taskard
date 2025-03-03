@@ -2,9 +2,11 @@ import { PrismaClient, User } from '@prisma/client';
 import * as z from 'zod';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
+import { validateRequest } from '../utils/validateRequest';
 
 const prisma = new PrismaClient();
 
+// User schema for request validation
 const updateUserSchema = z
   .object({
     name: z.string().min(1, 'Name is required').optional(),
@@ -13,6 +15,13 @@ const updateUserSchema = z
   })
   .strict();
 
+/**
+ * Get currently authenticated user
+ * @route GET /api/v1/users/me
+ * @param req - Express request object with authenticated user
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getMe = catchAsync(async (req, res, next) => {
   res.status(200).json({
@@ -21,7 +30,13 @@ export const getMe = catchAsync(async (req, res, next) => {
   });
 });
 
-// Update user profile
+/**
+ * Update authenticated user's profile
+ * @route PATCH /api/v1/users/updateMe
+ * @param req - Express request object with update data
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const updateMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return next(new AppError('User is not authenticated', 401));
@@ -30,16 +45,12 @@ export const updateMe = catchAsync(async (req, res, next) => {
   const user = req.user as User;
 
   // Validate the request body using Zod
-  const parsedBody = updateUserSchema.safeParse(req.body);
+  validateRequest(req, { body: updateUserSchema });
 
-  if (!parsedBody.success) {
-    return next(new AppError(parsedBody.error.errors[0].message, 400));
-  }
-
-  const filteredBody = parsedBody.data;
+  const filteredBody = req.body;
 
   const updatedUser = await prisma.user.update({
-    where: { email: user.email },
+    where: { id: user.id },
     data: filteredBody,
   });
 
@@ -51,7 +62,13 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-// Delete user profile
+/**
+ * Delete authenticated user's account
+ * @route DELETE /api/v1/users/deleteMe
+ * @param req - Express request object
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const deleteMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return next(new AppError('User is not authenticated', 401));
