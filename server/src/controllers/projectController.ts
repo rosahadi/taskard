@@ -13,7 +13,12 @@ import { validateRequest } from '../utils/validateRequest';
 
 const prisma = new PrismaClient();
 
-// Project Controllers
+/**
+ * Create a new project
+ * @param {Request} req - The request object containing project details in the body
+ * @param {Response} res - The response object to send back project data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const createProject = catchAsync(async (req, res, next) => {
   validateRequest(req, { body: createProjectSchema });
 
@@ -62,6 +67,12 @@ export const createProject = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get all projects for a specific workspace
+ * @param {Request} req - The request object containing the workspaceId in the params
+ * @param {Response} res - The response object to send back project data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const getAllProjects = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: getAllProjectsSchema });
 
@@ -103,6 +114,12 @@ export const getAllProjects = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get a specific project by its ID
+ * @param {Request} req - The request object containing the projectId in the params
+ * @param {Response} res - The response object to send back project data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const getProject = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: getProjectSchema });
 
@@ -149,6 +166,12 @@ export const getProject = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Update a project by its ID
+ * @param {Request} req - The request object containing the projectId in the params and project details in the body
+ * @param {Response} res - The response object to send back updated project data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const updateProject = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: updateProjectSchema.shape.params,
@@ -195,6 +218,12 @@ export const updateProject = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Delete a project by its ID
+ * @param {Request} req - The request object containing the projectId in the params
+ * @param {Response} res - The response object to send back a success message
+ * @param {NextFunction} next - The next middleware function
+ */
 export const deleteProject = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: deleteProjectSchema,

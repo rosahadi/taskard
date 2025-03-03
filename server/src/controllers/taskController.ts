@@ -17,6 +17,12 @@ import PrismaFeatures from '../utils/PrismaFeatures';
 
 const prisma = new PrismaClient();
 
+/**
+ * Create a new task
+ * @param {Request} req - The request object containing task details in the body
+ * @param {Response} res - The response object to send back the created task data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const createTask = catchAsync(async (req, res, next) => {
   validateRequest(req, { body: createTaskSchema });
 
@@ -180,6 +186,12 @@ export const createTask = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get all tasks for a specific project
+ * @param {Request} req - The request object containing query parameters
+ * @param {Response} res - The response object to send back the list of tasks
+ * @param {NextFunction} next - The next middleware function
+ */
 export const getAllTasks = catchAsync(async (req, res, next) => {
   validateRequest(req, { query: getAllTasksSchema });
 
@@ -236,6 +248,12 @@ export const getAllTasks = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Get a specific task by ID
+ * @param {Request} req - The request object containing the task ID in the params
+ * @param {Response} res - The response object to send back the task data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const getTask = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: getTaskSchema });
 
@@ -300,6 +318,12 @@ export const getTask = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Search for tasks based on various filters
+ * @param {Request} req - The request object containing search parameters in the query
+ * @param {Response} res - The response object to send back the search results
+ * @param {NextFunction} next - The next middleware function
+ */
 export const searchTasks = catchAsync(async (req, res, next) => {
   validateRequest(req, { query: searchTasksSchema });
 
@@ -397,6 +421,12 @@ export const searchTasks = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Update a specific task by ID
+ * @param {Request} req - The request object containing the task ID in the params and updated data in the body
+ * @param {Response} res - The response object to send back the updated task data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const updateTask = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: updateTaskSchema.shape.params,
@@ -538,6 +568,12 @@ export const updateTask = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Delete a specific task by ID
+ * @param {Request} req - The request object containing the task ID in the params
+ * @param {Response} res - The response object to send back a success message
+ * @param {NextFunction} next - The next middleware function
+ */
 export const deleteTask = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: deleteTaskSchema });
 
@@ -588,6 +624,12 @@ export const deleteTask = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Assign a task to a user
+ * @param {Request} req - The request object containing the task ID and user ID in the body
+ * @param {Response} res - The response object to send back the assignment data
+ * @param {NextFunction} next - The next middleware function
+ */
 export const assignTask = catchAsync(async (req, res, next) => {
   validateRequest(req, { body: assignTaskSchema });
 
@@ -673,6 +715,12 @@ export const assignTask = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * Unassign a task from a user
+ * @param {Request} req - The request object containing the task ID and user ID in the body
+ * @param {Response} res - The response object to send back a success message
+ * @param {NextFunction} next - The next middleware function
+ */
 export const unassignTask = catchAsync(async (req, res, next) => {
   validateRequest(req, { body: unassignTaskSchema });
 
