@@ -12,7 +12,13 @@ import {
 
 const prisma = new PrismaClient();
 
-// Get all members of a workspace
+/**
+ * Get all members of a workspace
+ * @route GET /api/v1/workspaces/:workspaceId/members
+ * @param req - Express request object with `workspaceId` in params
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: getWorkspaceMembersSchema });
 
@@ -26,6 +32,7 @@ export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
       userId: user.id,
     },
   });
+
   const isOwner = await prisma.workspace.findFirst({
     where: {
       id: parseInt(workspaceId),
@@ -38,27 +45,24 @@ export const getWorkspaceMembers = catchAsync(async (req, res, next) => {
   }
 
   const members = await prisma.workspaceMember.findMany({
-    where: {
-      workspaceId: parseInt(workspaceId),
-    },
+    where: { workspaceId: parseInt(workspaceId) },
     include: {
       user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
-        },
+        select: { name: true, email: true, image: true },
       },
     },
   });
 
-  res.status(200).json({
-    status: 'success',
-    data: members,
-  });
+  res.status(200).json({ status: 'success', data: members });
 });
 
-// Update member role
+/**
+ * Update a workspace member's role
+ * @route PATCH /api/v1/workspaces/members/:memberId/role
+ * @param req - Express request object with `memberId` in params and `role` in body
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const updateMemberRole = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: updateMemberRoleSchema.shape.params,
@@ -68,8 +72,6 @@ export const updateMemberRole = catchAsync(async (req, res, next) => {
   const user = await currentUser(req);
   const { memberId } = req.params;
   const { role } = req.body;
-
-  console.log(memberId);
 
   if (!Object.values(Role).includes(role)) {
     return next(new AppError('Invalid role specified', 400));
@@ -105,23 +107,20 @@ export const updateMemberRole = catchAsync(async (req, res, next) => {
     where: { id: parseInt(memberId) },
     data: { role },
     include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
+      user: { select: { name: true, email: true, image: true } },
     },
   });
 
-  res.status(200).json({
-    status: 'success',
-    data: updatedMember,
-  });
+  res.status(200).json({ status: 'success', data: updatedMember });
 });
 
-// Remove member from workspace
+/**
+ * Remove a member from a workspace
+ * @route DELETE /api/v1/workspaces/members/:memberId
+ * @param req - Express request object with `memberId` in params
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const removeMember = catchAsync(async (req, res, next) => {
   validateRequest(req, { params: removeMemberSchema });
 
@@ -159,17 +158,18 @@ export const removeMember = catchAsync(async (req, res, next) => {
     return next(new AppError('Cannot remove workspace owner', 403));
   }
 
-  await prisma.workspaceMember.delete({
-    where: { id: parseInt(memberId) },
-  });
+  await prisma.workspaceMember.delete({ where: { id: parseInt(memberId) } });
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  res.status(204).json({ status: 'success', data: null });
 });
 
-// Search workspace members by name or email
+/**
+ * Search workspace members by name or email
+ * @route GET /api/v1/workspaces/:workspaceId/members/search
+ * @param req - Express request object with `workspaceId` in params and search `query` in query string
+ * @param res - Express response object
+ * @param next - Express next function
+ */
 export const searchWorkspaceMembers = catchAsync(async (req, res, next) => {
   validateRequest(req, {
     params: searchWorkspaceMembersSchema.shape.params,
@@ -183,17 +183,11 @@ export const searchWorkspaceMembers = catchAsync(async (req, res, next) => {
 
   // Check if user has access to workspace
   const hasAccess = await prisma.workspaceMember.findFirst({
-    where: {
-      workspaceId: parseInt(workspaceId),
-      userId: user.id,
-    },
+    where: { workspaceId: parseInt(workspaceId), userId: user.id },
   });
 
   const isOwner = await prisma.workspace.findFirst({
-    where: {
-      id: parseInt(workspaceId),
-      ownerId: user.id,
-    },
+    where: { id: parseInt(workspaceId), ownerId: user.id },
   });
 
   if (!hasAccess && !isOwner) {
@@ -208,42 +202,17 @@ export const searchWorkspaceMembers = catchAsync(async (req, res, next) => {
     whereCondition = {
       ...whereCondition,
       OR: [
-        {
-          user: {
-            name: {
-              contains: query as string,
-              mode: 'insensitive',
-            },
-          },
-        },
-        {
-          user: {
-            email: {
-              contains: query as string,
-              mode: 'insensitive',
-            },
-          },
-        },
+        { user: { name: { contains: query as string, mode: 'insensitive' } } },
+        { user: { email: { contains: query as string, mode: 'insensitive' } } },
       ],
     };
   }
 
   const members = await prisma.workspaceMember.findMany({
     where: whereCondition,
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-    },
+    include: { user: { select: { name: true, email: true, image: true } } },
     take: 10,
   });
 
-  res.status(200).json({
-    status: 'success',
-    data: members,
-  });
+  res.status(200).json({ status: 'success', data: members });
 });

@@ -3,25 +3,32 @@ import crypto from 'crypto';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import currentUser from '../utils/currentUser';
-import { inviteWorkspaceMemberSchema } from '../schemas/workspace';
+import {
+  inviteWorkspaceMemberSchema,
+  acceptWorkspaceInvitationSchema,
+} from '../schemas/workspace';
 import { sendWorkspaceInviteEmail } from '../email/email';
 import { generateAndHashToken } from '../utils/auth';
+import { validateRequest } from '../utils/validateRequest';
 
 const prisma = new PrismaClient();
 
-// Invite member to workspace
+/**
+ * Invite a member to a workspace.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @param {Function} next - Express next function.
+ */
 export const inviteWorkspaceMember = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: inviteWorkspaceMemberSchema.shape.params,
+    body: inviteWorkspaceMemberSchema.shape.body,
+  });
+
   const user = await currentUser(req);
   const { id } = req.params;
   const workspaceId = parseInt(id);
-
-  const parsedData = inviteWorkspaceMemberSchema.safeParse(req.body);
-  if (!parsedData.success) {
-    const errorMessages = parsedData.error.errors.map((err) => err.message);
-    return next(new AppError(errorMessages.join(', '), 400));
-  }
-
-  const { email, role } = parsedData.data;
+  const { email, role } = req.body;
 
   // Check if user is owner or admin
   const membership = await prisma.workspaceMember.findFirst({
@@ -125,8 +132,17 @@ export const inviteWorkspaceMember = catchAsync(async (req, res, next) => {
   });
 });
 
-// Accept workspace invitation
+/**
+ * Accept a workspace invitation.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @param {Function} next - Express next function.
+ */
 export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
+  validateRequest(req, {
+    params: acceptWorkspaceInvitationSchema.shape.params,
+  });
+
   const user = await currentUser(req);
   const { token, id } = req.params;
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -178,7 +194,9 @@ export const acceptWorkspaceInvitation = catchAsync(async (req, res, next) => {
   });
 });
 
-// Scheduled task to clean up expired invitatinos
+/**
+ * Scheduled task to clean up expired invitations.
+ */
 export const cleanupExpiredInvitations = async () => {
   try {
     const deletedInvites = await prisma.workspaceInvite.deleteMany({
@@ -186,7 +204,6 @@ export const cleanupExpiredInvitations = async () => {
         expires: { lt: new Date() },
       },
     });
-
     console.log(`Deleted ${deletedInvites.count} expired invitations.`);
   } catch (error) {
     console.error('Error cleaning up expired invitations:', error);
