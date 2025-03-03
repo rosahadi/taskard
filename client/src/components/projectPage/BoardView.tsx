@@ -154,7 +154,7 @@ const BoardView = ({ projectId, tasks }: BoardViewProps) => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="absolute inset-0 flex flex-col overflow-hidden mt-20">
+      <div className="absolute inset-0 flex flex-col overflow-hidden">
         {/* Column Headers */}
         <div
           ref={columnHeadersRef}

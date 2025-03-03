@@ -49,7 +49,7 @@ const ProjectTasksPage = ({ params }: PageProps) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-70px)] overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed position header */}
       <div className="w-full sticky top-[70px] bg-background z-20 shadow-sm">
         <ProjectHeader
@@ -68,8 +68,8 @@ const ProjectTasksPage = ({ params }: PageProps) => {
         />
       </div>
 
-      {/* Content area with tabs */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Content area */}
+      <div className="flex-1 overflow-hidden relative mt-20 ">
         {activeTab === 'List' && (
           <div className="h-full overflow-auto">
             <TaskListView tasks={tasks} projectId={parseInt(projectId)} />
