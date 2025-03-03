@@ -229,7 +229,7 @@ export const taskApi = createApi({
           taskId: 0,
         },
       }),
-      providesTags: ['Task'],
+      providesTags: ['Tasks', 'Task'],
     }),
   }),
 });

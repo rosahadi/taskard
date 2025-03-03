@@ -63,7 +63,7 @@ const ProjectHeader = ({
   const formattedEndDate = formatDate(endDate);
 
   return (
-    <div className="px-4 xl:px-6">
+    <div className="px-4 xl:px-6 bg-[--background-primary]">
       <div className="pb-6 pt-6 lg:pb-4 lg:pt-8">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
           {projectName}
