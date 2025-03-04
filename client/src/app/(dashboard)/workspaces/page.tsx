@@ -6,7 +6,7 @@ import { useGetAllWorkspacesQuery } from '@/store/workspaceApi';
 import { useAppSelector, useAppDispatch } from '@/app/redux';
 import { setActiveWorkspace } from '@/store/workspaceSlice';
 
-const HomePage = () => {
+const WorkspacesPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { data: workspacesResponse, isLoading } = useGetAllWorkspacesQuery();
@@ -43,4 +43,4 @@ const HomePage = () => {
   return null;
 };
 
-export default HomePage;
+export default WorkspacesPage;
