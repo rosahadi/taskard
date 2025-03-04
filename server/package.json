@@ -4,7 +4,16 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "start:prod": "NODE_ENV=production node dist/server.js"
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "install:all": "(cd ../client && npm install) && npm install",
+    "build:frontend": "cd ../client && npm run build",
+    "build:server": "rimraf dist && npx tsc",
+    "build": "npm run build:server && npm run build:frontend",
+    "lint": "eslint",
+    "start:frontend": "cd ../client && npm run dev",
+    "start:frontendProd": "cd ../client && npm run preview",
+    "dev:start": "concurrently \"npm run dev\" \"npm run start:frontend\"",
+    "prod:start": "concurrently \"npm run start:prod\" \"npm run start:frontendProd\""
   },
   "keywords": [],
   "author": "",
@@ -15,6 +24,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "compression": "^1.7.5",
+    "concurrently": "^9.1.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cron": "^3.5.0",
@@ -36,6 +46,7 @@
     "passport-jwt": "^4.0.1",
     "prisma": "^6.3.1",
     "resend": "^4.1.2",
+    "rimraf": "^6.0.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {
