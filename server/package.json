@@ -4,16 +4,14 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "start:prod": "NODE_ENV=production node dist/server.js",
-    "install:all": "(cd ../client && npm install) && npm install",
-    "build:frontend": "cd ../client && npm run build",
-    "build:server": "rimraf dist && npx tsc",
-    "build": "npm run build:server && npm run build:frontend",
+    "start": "NODE_ENV=production node dist/server.js",
+    "build": "rimraf dist && npx tsc",
     "lint": "eslint",
-    "start:frontend": "cd ../client && npm run dev",
-    "start:frontendProd": "cd ../client && npm run preview",
-    "dev:start": "concurrently \"npm run dev\" \"npm run start:frontend\"",
-    "prod:start": "concurrently \"npm run start:prod\" \"npm run start:frontendProd\""
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "postinstall": "prisma generate",
+    "prod:setup": "concurrently \"npm run db:generate\" \"npm run db:migrate\""
   },
   "keywords": [],
   "author": "",

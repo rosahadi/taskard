@@ -36,7 +36,7 @@ export const createSendToken = (
   const cookieOptions = {
     expires: new Date(Date.now() + cookieExpiresInDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    sameSite: 'lax' as const,
+    sameSite: 'none' as const,
     secure: process.env.NODE_ENV === 'production',
   };
 
