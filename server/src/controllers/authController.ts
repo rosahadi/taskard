@@ -109,9 +109,8 @@ export const verifyEmail = catchAsync(
       );
     }
 
-    // Update user and create workspace
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
+    try {
+      const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           emailVerified: true,
@@ -120,13 +119,18 @@ export const verifyEmail = catchAsync(
         },
       });
 
-      await createDefaultWorkspace(user);
-    });
+      // Create default workspace after user is verified
+      await createDefaultWorkspace(updatedUser);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Email verified successfully',
-    });
+      res.status(200).json({
+        status: 'success',
+        message: 'Email verified successfully',
+      });
+    } catch {
+      return next(
+        new AppError('Failed to verify email. Please try again.', 500)
+      );
+    }
   }
 );
 
@@ -237,11 +241,14 @@ export const login = catchAsync(
  * @param res - Express response object
  */
 export const logout = (_req: Request, res: Response) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   // Clear the JWT from the cookie
   res.cookie('jwt', '', {
     expires: new Date(0),
     httpOnly: true,
     sameSite: 'none' as const,
+    secure: isProduction,
   });
 
   res.status(200).json({ status: 'success' });
@@ -432,15 +439,33 @@ export const protect = catchAsync(
  */
 export const cleanupUnverifiedUsers = async () => {
   try {
-    const result = await prisma.user.deleteMany({
+    const usersToDelete = await prisma.user.findMany({
       where: {
         AND: [
           { emailVerified: false },
           { verificationExpires: { lt: new Date() } },
         ],
       },
+      select: { id: true, email: true, verificationExpires: true },
     });
-    console.log(`Cleaned up ${result.count} unverified users`);
+
+    if (usersToDelete.length > 0) {
+      console.log(`Found ${usersToDelete.length} unverified users to clean up`);
+
+      // Delete the users
+      const result = await prisma.user.deleteMany({
+        where: {
+          AND: [
+            { emailVerified: false },
+            { verificationExpires: { lt: new Date() } },
+          ],
+        },
+      });
+
+      console.log(`Successfully cleaned up ${result.count} unverified users`);
+    } else {
+      console.log('No unverified users to clean up');
+    }
   } catch (error) {
     console.error('Error cleaning up unverified users:', error);
   }

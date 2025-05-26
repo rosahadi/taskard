@@ -33,11 +33,13 @@ export const createSendToken = (
     10
   );
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   const cookieOptions = {
     expires: new Date(Date.now() + cookieExpiresInDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    sameSite: 'none' as const,
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: isProduction ? ('none' as const) : ('lax' as const),
+    secure: isProduction,
   };
 
   res.cookie('jwt', token, cookieOptions);
