@@ -50,7 +50,7 @@ const Sidebar = () => {
   );
 
   const sidebarClassNames = `fixed flex flex-col h-[100%] justify-between shadow-xl
-    transition-all duration-300 h-full z-40 bg-[--background-quaternary] overflow-y-auto
+    transition-all duration-300 h-full z-40 bg-[var(--background-quaternary)] overflow-y-auto border-r border-[var(--border)]
     ${isSidebarCollapsed ? 'w-0 hidden' : 'w-64'}
   `;
 
@@ -65,10 +65,12 @@ const Sidebar = () => {
         <SidebarHeader />
 
         {/* WORKSPACE */}
-        <WorkspaceHeader />
+        <div className="border-b border-[var(--border)] mb-2">
+          <WorkspaceHeader />
+        </div>
 
         {/* NAVBAR LINKS */}
-        <nav className="z-10 w-full">
+        <nav className="z-10 w-full px-2 mb-4">
           <SidebarLink
             icon={CheckSquare}
             label="My Tasks"
@@ -76,91 +78,116 @@ const Sidebar = () => {
           />
         </nav>
 
-        {/* PROJECTS LINKS */}
-        <div className="flex items-center justify-between px-8 py-3">
-          <button
-            onClick={() => setShowProjects((prev) => !prev)}
-            className="flex items-center gap-2 text-[--text-muted]"
-          >
-            <span>Projects</span>
-            {showProjects ? (
-              <ChevronUp className="h-5 w-5" />
-            ) : (
-              <ChevronDown className="h-5 w-5" />
-            )}
-          </button>
+        {/* PROJECTS SECTION */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Projects Header */}
+          <div className="flex items-center justify-between px-6 py-3 mb-2 bg-[var(--background-secondary)] mx-2 rounded-lg">
+            <button
+              onClick={() => setShowProjects((prev) => !prev)}
+              className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-200 font-medium"
+            >
+              <span>Projects</span>
+              {showProjects ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
 
-          {/* Plus button to create a new project */}
-          <button
-            onClick={() => setShowCreateDialog(true)}
-            className="p-1 text-[--text-muted] hover:text-[--text-primary]"
-            disabled={!activeWorkspaceId}
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Render projects */}
-        {showProjects && (
-          <div className="w-full">
-            {isLoading ? (
-              <div className="px-8 py-3 text-[--text-muted]">Loading...</div>
-            ) : isError ? (
-              <div className="px-8 py-3 text-[--text-muted]">
-                Failed to load projects
-              </div>
-            ) : !activeWorkspaceId ? (
-              <div className="px-8 py-3 text-[--text-muted]">
-                Select a workspace to view projects
-              </div>
-            ) : projectsData?.data.length === 0 ? (
-              <div className="px-8 py-3 text-[--text-muted]">
-                No projects found. Create one!
-              </div>
-            ) : (
-              projectsData?.data.map((project) => (
-                <div
-                  key={project.id}
-                  className="group flex items-center justify-between hover:bg-[--background-tertiary]"
-                >
-                  <SidebarLink
-                    icon={Layers3}
-                    label={project.name}
-                    href={`${workspaceBaseUrl}/projects/${project.id}`}
-                  />
-                  {/* Dropdown Menu for Edit/Delete */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="p-1 text-[--text-muted] opacity-0 group-hover:opacity-100 hover:text-[--text-primary]">
-                        <MoreVertical className="h-5 w-5" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[--background-secondary] border-[--border]">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setEditProjectId(project.id);
-                          setShowEditDialog(true);
-                        }}
-                        className="cursor-pointer text-[--text-primary]"
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProjectToDelete(project.id);
-                          setShowDeleteDialog(true);
-                        }}
-                        className="cursor-pointer text-[--status-danger]"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              ))
-            )}
+            {/* Plus button to create a new project */}
+            <button
+              onClick={() => setShowCreateDialog(true)}
+              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--background-tertiary)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!activeWorkspaceId}
+              title="Create new project"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
-        )}
+
+          {/* Projects List */}
+          {showProjects && (
+            <div className="w-full px-2 space-y-1">
+              {isLoading ? (
+                <div className="px-4 py-6 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)] mx-auto mb-2"></div>
+                  <div className="text-[var(--text-muted)] text-sm">
+                    Loading projects...
+                  </div>
+                </div>
+              ) : isError ? (
+                <div className="px-4 py-6 text-center">
+                  <div className="text-[var(--text-error)] text-sm">
+                    Failed to load projects
+                  </div>
+                </div>
+              ) : !activeWorkspaceId ? (
+                <div className="px-4 py-6 text-center">
+                  <div className="text-[var(--text-muted)] text-sm">
+                    Select a workspace to view projects
+                  </div>
+                </div>
+              ) : projectsData?.data.length === 0 ? (
+                <div className="px-4 py-6 text-center">
+                  <Layers3 className="h-8 w-8 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+                  <div className="text-[var(--text-muted)] text-sm">
+                    No projects yet
+                  </div>
+                  <div className="text-[var(--text-muted)] text-xs mt-1">
+                    Create your first project!
+                  </div>
+                </div>
+              ) : (
+                projectsData?.data.map((project) => (
+                  <div
+                    key={project.id}
+                    className="group flex items-center rounded-lg hover:bg-[var(--background-secondary)] transition-colors duration-200"
+                  >
+                    <div className="flex-1">
+                      <SidebarLink
+                        icon={Layers3}
+                        label={project.name}
+                        href={`${workspaceBaseUrl}/projects/${project.id}`}
+                      />
+                    </div>
+
+                    {/* Dropdown Menu for Edit/Delete */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-2 m-1 rounded-md text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--text-primary)] hover:bg-[var(--background-tertiary)] transition-all duration-200">
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="bg-[var(--background-tertiary)] border-[var(--border)] shadow-lg w-48"
+                        align="end"
+                      >
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditProjectId(project.id);
+                            setShowEditDialog(true);
+                          }}
+                          className="cursor-pointer text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors duration-150"
+                        >
+                          Edit Project
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setProjectToDelete(project.id);
+                            setShowDeleteDialog(true);
+                          }}
+                          className="cursor-pointer text-[var(--status-danger)] hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-150"
+                        >
+                          Delete Project
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create Project Modal */}

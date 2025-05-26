@@ -102,7 +102,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       if (error) throw new Error('Failed to fetch user data');
 
       if (userData) {
-        // Store the complete user data in Redux
         dispatch(setCredentials(userData));
       }
 
@@ -133,15 +132,18 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             email: currentUser.email,
           });
           setImagePreview(currentUser.image || null);
+          setError(null);
           onClose();
         }
       }}
     >
-      <DialogContent className="bg-[--background-secondary] border-[--border] text-[--text-primary] sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>User Settings</DialogTitle>
-          <DialogDescription className="text-[--text-muted]">
-            Update your profile information
+      <DialogContent className="bg-[var(--background-tertiary)] border-[var(--border)] text-[var(--text-primary)] sm:max-w-[500px] shadow-xl rounded-xl">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl font-semibold text-[var(--text-primary)]">
+            User Settings
+          </DialogTitle>
+          <DialogDescription className="text-[var(--text-muted)]">
+            Update your profile information and preferences
           </DialogDescription>
         </DialogHeader>
 
@@ -150,22 +152,28 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             onSubmit={form.handleSubmit(handleFormSubmit)}
             className="space-y-6"
           >
-            {error && <div className="text-sm text-red-500">{error}</div>}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                <p className="text-sm text-[var(--text-error)]">{error}</p>
+              </div>
+            )}
 
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-[var(--text-primary)]">
+                    Full Name
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="John Doe"
-                      className="bg-[--background-tertiary] border-[--border]"
+                      placeholder="Enter your full name"
+                      className="bg-[var(--background-secondary)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors duration-200"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[var(--text-error)]" />
                 </FormItem>
               )}
             />
@@ -174,17 +182,19 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-[var(--text-primary)]">
+                    Email Address
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="john@example.com"
+                      placeholder="Enter your email address"
                       type="email"
-                      className="bg-[--background-tertiary] border-[--border]"
+                      className="bg-[var(--background-secondary)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors duration-200"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[var(--text-error)]" />
                 </FormItem>
               )}
             />
@@ -193,33 +203,37 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               control={form.control}
               name="image"
               render={() => (
-                <FormItem>
-                  <FormLabel>Profile Picture</FormLabel>
+                <FormItem className="space-y-2">
+                  <FormLabel className="text-sm font-medium text-[var(--text-primary)]">
+                    Profile Picture
+                  </FormLabel>
                   <FormControl>
-                    <ImageUpload
-                      imagePreview={imagePreview}
-                      onImageUpload={handleImageUpload}
-                      onRemoveImage={handleRemoveImage}
-                    />
+                    <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 hover:border-[var(--primary)] transition-colors duration-200">
+                      <ImageUpload
+                        imagePreview={imagePreview}
+                        onImageUpload={handleImageUpload}
+                        onRemoveImage={handleRemoveImage}
+                      />
+                    </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[var(--text-error)]" />
                 </FormItem>
               )}
             />
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-[var(--border)]">
               <Button
                 variant="outline"
                 onClick={onClose}
                 type="button"
-                className="border-[--border] text-[--text-primary]"
+                className="border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--background-secondary)] transition-colors duration-200"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isUpdating || !form.formState.isValid}
-                className="bg-[--primary] text-white hover:bg-[--primary-hover]"
+                className="bg-[var(--primary)] text-white hover:bg-[var(--secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 {isUpdating ? (
                   <>

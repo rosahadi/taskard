@@ -5,162 +5,161 @@
 @layer base {
   :root {
     /* ====== GENERAL ====== */
-    --foreground: #2d3748; /* Dark Charcoal */
-    --border: #e2e8f0; /* Light Silver Gray */
-    --muted-text: #718096; /* Soft Gray */
-    --link-color: #3182ce; /* Bright Blue */
-    --highlight: #f6e05e; /* Yellow Highlight */
+    --foreground: #1e293b; /* Rich Slate */
+    --border: #e2e8f0; /* Light Neutral */
+    --muted-text: #64748b; /* Balanced Gray */
+    --link-color: #0ea5e9; /* Modern Sky Blue */
+    --highlight: #fbbf24; /* Warm Amber */
 
     /* ====== BACKGROUND COLORS ====== */
-    --background-primary: hsl(216, 33%, 97%); /* Light Silver Gray */
-    --background-secondary: #e8ebf0; /* Cool Silver */
+    --background-primary: #fafafa; /* Clean Off-White */
+    --background-secondary: #f1f5f9; /* Soft Blue-Gray */
     --background-tertiary: #ffffff; /* Pure White */
-    --background-quaternary: hsl(208, 32%, 92%); /* Very Light Silver */
+    --background-quaternary: #f8fafc; /* Subtle Gray */
 
     /* ====== TEXT COLORS ====== */
-    --text-primary: #2d3748; /* Dark Charcoal */
-    --text-secondary: #4a5568; /* Medium Gray */
-    --text-muted: #718096; /* Soft Gray */
-    --text-error: #e53e3e; /* Red */
-    --text-success: #38a169; /* Green */
-    --text-warning: #d69e2e; /* Yellow */
-    --text-info: #805ad5; /* Purple */
+    --text-primary: #0f172a; /* Deep Slate */
+    --text-secondary: #334155; /* Medium Slate */
+    --text-muted: #64748b; /* Balanced Gray */
+    --text-error: #dc2626; /* Modern Red */
+    --text-success: #059669; /* Professional Green */
+    --text-warning: #d97706; /* Rich Orange */
+    --text-info: #7c3aed; /* Vibrant Purple */
 
     /* ====== CARDS & ELEMENTS ====== */
-    --card: #ffffff; /* White */
-    --card-border: #e2e8f0; /* Light Silver */
-    --card-shadow: rgba(0, 32, 135, 0.1); /* Soft Black */
+    --card: #ffffff; /* Pure White */
+    --card-border: #e2e8f0; /* Light Neutral */
+    --card-shadow: rgba(15, 23, 42, 0.08); /* Subtle Shadow */
 
     /* ====== PRIMARY COLORS ====== */
-    --primary: #3182ce; /* Bright Blue */
-    --secondary: #63b3ed; /* Light Blue */
-    --tertiary: #90cdf4; /* Pale Blue */
+    --primary: #0ea5e9; /* Modern Sky Blue */
+    --secondary: #0284c7; /* Deeper Sky Blue */
+    --tertiary: #38bdf8; /* Light Sky Blue */
 
     /* ====== STATUS COLORS ====== */
-    --status-danger: #e53e3e; /* Red */
-    --status-warning: #d69e2e; /* Yellow */
-    --status-success: #38a169; /* Green */
-    --status-info: #805ad5; /* Purple */
+    --status-danger: #dc2626; /* Modern Red */
+    --status-warning: #d97706; /* Rich Orange */
+    --status-success: #059669; /* Professional Green */
+    --status-info: #7c3aed; /* Vibrant Purple */
 
     /* ====== PRIORITY COLORS ====== */
-    --priority-low: #90cdf4; /* Pale Blue */
-    --priority-medium: #f6ad55; /* Light Orange */
-    --priority-high: #e53e3e; /* Red */
-    --priority-urgent: #805ad5; /* Purple */
+    --priority-low: #10b981; /* Emerald Green */
+    --priority-medium: #f59e0b; /* Amber */
+    --priority-high: #ef4444; /* Bright Red */
+    --priority-urgent: #8b5cf6; /* Purple */
 
     /* ====== BOARD & TABLE STATUS COLORS ====== */
-    --status-todo: #63b3ed; /* Light Blue */
-    --status-inprogress: #f6e05e; /* Yellow */
-    --status-done: #68d391; /* Green */
-    --status-blocked: #fc8181; /* Light Red */
+    --status-todo: #64748b; /* Neutral Gray */
+    --status-inprogress: #0ea5e9; /* Sky Blue */
+    --status-done: #059669; /* Emerald Green */
+    --status-blocked: #dc2626; /* Modern Red */
 
     /* ====== BUTTONS ====== */
-    --button-bg: #3182ce; /* Bright Blue */
-    --button-hover: #2b6cb0; /* Darker Blue */
+    --button-bg: #0ea5e9; /* Sky Blue */
+    --button-hover: #0284c7; /* Darker Sky Blue */
     --button-text: #ffffff; /* White */
 
-    /*  */
-    --foreground: 218 33% 23%; /* #2d3748 */
-    --card-foreground: 218 33% 23%; /* #2d3748 */
+    /* Shadcn/UI Variables */
+    --foreground: 222 84% 5%; /* #0f172a */
+    --card-foreground: 222 84% 5%; /* #0f172a */
     --popover: 0 0% 100%; /* #ffffff */
-    --popover-foreground: 218 33% 23%; /* #2d3748 */
+    --popover-foreground: 222 84% 5%; /* #0f172a */
     --primary-foreground: 0 0% 100%; /* #ffffff */
-    --secondary-foreground: 218 33% 23%; /* #2d3748 */
-    --muted: 217 19% 89%; /* #e2e8f0 */
-    --muted-foreground: 215 20% 51%; /* #718096 */
-    --accent: 207 70% 66%; /* #63b3ed */
-    --accent-foreground: 218 33% 23%; /* #2d3748 */
-    --destructive: 0 72% 57%; /* #e53e3e */
+    --secondary-foreground: 222 84% 5%; /* #0f172a */
+    --muted: 210 40% 96%; /* #f1f5f9 */
+    --muted-foreground: 215 16% 47%; /* #64748b */
+    --accent: 199 89% 48%; /* #0ea5e9 */
+    --accent-foreground: 0 0% 100%; /* #ffffff */
+    --destructive: 0 72% 51%; /* #dc2626 */
     --destructive-foreground: 0 0% 100%; /* #ffffff */
-    --border: 217 19% 89%; /* #e2e8f0 */
-    --input: 217 19% 89%; /* #e2e8f0 */
-    --ring: 209 75% 50%; /* #3182ce */
+    --border: 214 32% 91%; /* #e2e8f0 */
+    --input: 214 32% 91%; /* #e2e8f0 */
+    --ring: 199 89% 48%; /* #0ea5e9 */
     --radius: 0.5rem;
   }
 
   .dark {
     /* ====== GENERAL ====== */
-    --foreground: #e2e8f0; /* Light Silver */
-    --border: #4a5568; /* Cool Gray */
-    --muted-text: #a0aec0; /* Medium Silver Gray */
-    --link-color: #90cdf4; /* Pale Blue */
-    --highlight: #d69e2e; /* Yellow */
+    --foreground: #e2e8f0; /* Light Neutral */
+    --border: #374151; /* Dark Gray Border */
+    --muted-text: #9ca3af; /* Medium Gray */
+    --link-color: #38bdf8; /* Light Sky Blue */
+    --highlight: #fbbf24; /* Warm Amber */
 
     /* ====== BACKGROUND COLORS ====== */
-    --background-primary: #151a24; /* Dark Charcoal */
-    --background-secondary: #2d3748; /* Medium Charcoal */
-    --background-tertiary: #4a5568; /* Cool Gray */
-    --background-quaternary: #101219; /* Very Dark Charcoal */
+    --background-primary: #0f172a; /* Deep Slate */
+    --background-secondary: #1e293b; /* Rich Slate */
+    --background-tertiary: #334155; /* Medium Slate */
+    --background-quaternary: #0c1220; /* Very Deep Slate */
 
     /* ====== TEXT COLORS ====== */
-    --text-primary: #e2e8f0; /* Light Silver */
-    --text-secondary: #cbd5e0; /* Pale Silver */
-    --text-muted: #a0aec0; /* Medium Silver Gray */
-    --text-error: #fc8181; /* Light Red */
-    --text-success: #68d391; /* Light Green */
-    --text-warning: #f6ad55; /* Light Orange */
-    --text-info: #b794f4; /* Light Purple */
+    --text-primary: #f8fafc; /* Off White */
+    --text-secondary: #e2e8f0; /* Light Neutral */
+    --text-muted: #94a3b8; /* Light Gray */
+    --text-error: #f87171; /* Light Red */
+    --text-success: #34d399; /* Light Green */
+    --text-warning: #fbbf24; /* Amber */
+    --text-info: #a78bfa; /* Light Purple */
 
     /* ====== CARDS & ELEMENTS ====== */
-    --card: #2d3748; /* Medium Charcoal */
-    --card-border: #4a5568; /* Cool Gray */
-    --card-shadow: rgba(0, 0, 0, 0.3); /* Dark Black */
+    --card: #1e293b; /* Rich Slate */
+    --card-border: #374151; /* Dark Gray */
+    --card-shadow: rgba(0, 0, 0, 0.25); /* Deep Shadow */
 
     /* ====== PRIMARY COLORS ====== */
-    --primary: #63b3ed; /* Light Blue */
-    --secondary: #90cdf4; /* Pale Blue */
-    --tertiary: #3182ce; /* Bright Blue */
+    --primary: #38bdf8; /* Light Sky Blue */
+    --secondary: #0ea5e9; /* Sky Blue */
+    --tertiary: #0284c7; /* Deeper Sky Blue */
 
     /* ====== STATUS COLORS ====== */
-    --status-danger: #fc8181; /* Light Red */
-    --status-warning: #f6ad55; /* Light Orange */
-    --status-success: #68d391; /* Light Green */
-    --status-info: #b794f4; /* Light Purple */
+    --status-danger: #f87171; /* Light Red */
+    --status-warning: #fbbf24; /* Amber */
+    --status-success: #34d399; /* Light Green */
+    --status-info: #a78bfa; /* Light Purple */
 
     /* ====== PRIORITY COLORS ====== */
-    --priority-low: #63b3ed; /* Light Blue */
-    --priority-medium: #f6ad55; /* Light Orange */
-    --priority-high: #e53e3e; /* Red */
-    --priority-urgent: #b794f4; /* Light Purple */
+    --priority-low: #34d399; /* Light Emerald */
+    --priority-medium: #fbbf24; /* Amber */
+    --priority-high: #f87171; /* Light Red */
+    --priority-urgent: #a78bfa; /* Light Purple */
 
     /* ====== BOARD & TABLE STATUS COLORS ====== */
-    --status-todo: #90cdf4; /* Pale Blue */
-    --status-inprogress: #f6e05e; /* Yellow */
-    --status-done: #38a169; /* Green */
-    --status-blocked: #e53e3e; /* Red */
+    --status-todo: #64748b; /* Neutral Gray */
+    --status-inprogress: #38bdf8; /* Light Sky Blue */
+    --status-done: #34d399; /* Light Emerald */
+    --status-blocked: #f87171; /* Light Red */
 
     /* ====== BUTTONS ====== */
-    --button-bg: #63b3ed; /* Light Blue */
-    --button-hover: #4299e1; /* Darker Blue */
-    --button-text: #171717; /* Black */
+    --button-bg: #38bdf8; /* Light Sky Blue */
+    --button-hover: #0ea5e9; /* Sky Blue */
+    --button-text: #0f172a; /* Deep Slate */
 
-    /*  */
-    --foreground: 217 24% 91%; /* #e2e8f0 */
-    --card-foreground: 217 24% 91%; /* #e2e8f0 */
-    --popover: 218 33% 23%; /* #2d3748 */
-    --popover-foreground: 217 24% 91%; /* #e2e8f0 */
-    --primary-foreground: 0 0% 9%; /* #171717 */
-    --secondary-foreground: 217 24% 91%; /* #e2e8f0 */
-    --muted: 218 23% 35%; /* #4a5568 */
-    --muted-foreground: 215 20% 63%; /* #a0aec0 */
-    --accent: 207 89% 76%; /* #90cdf4 */
-    --accent-foreground: 217 24% 91%; /* #e2e8f0 */
-    --destructive: 0 84% 75%; /* #fc8181 */
-    --destructive-foreground: 217 24% 91%; /* #e2e8f0 */
-    --border: 218 23% 35%; /* #4a5568 */
-    --input: 218 23% 35%; /* #4a5568 */
-    --ring: 207 70% 66%; /* #63b3ed */
+    /* Shadcn/UI Variables */
+    --foreground: 213 31% 91%; /* #e2e8f0 */
+    --card-foreground: 213 31% 91%; /* #e2e8f0 */
+    --popover: 222 84% 11%; /* #1e293b */
+    --popover-foreground: 213 31% 91%; /* #e2e8f0 */
+    --primary-foreground: 222 84% 5%; /* #0f172a */
+    --secondary-foreground: 213 31% 91%; /* #e2e8f0 */
+    --muted: 215 28% 17%; /* #334155 */
+    --muted-foreground: 218 11% 65%; /* #94a3b8 */
+    --accent: 199 95% 74%; /* #38bdf8 */
+    --accent-foreground: 222 84% 5%; /* #0f172a */
+    --destructive: 0 73% 70%; /* #f87171 */
+    --destructive-foreground: 213 31% 91%; /* #e2e8f0 */
+    --border: 215 28% 25%; /* #374151 */
+    --input: 215 28% 25%; /* #374151 */
+    --ring: 199 95% 74%; /* #38bdf8 */
     --radius: 0.5rem;
   }
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-/* ========================= */
-/*  USING TAILWIND CLASSES */
-/* ========================= */
 
 @layer components {
   /* text styles */
@@ -194,37 +193,54 @@ body {
 
   /*  container */
   .example-container {
-    @apply bg-[var(--background)] text-[var(--foreground)] border-[var(--border)] shadow-md p-4;
+    @apply bg-[var(--background-primary)] text-[var(--foreground)] border-[var(--border)] shadow-sm p-6 rounded-lg;
   }
 
   /*  button */
   .button-primary {
-    @apply bg-[var(--button-bg)] hover:bg-[var(--button-hover)] text-[var(--button-text)] px-4 py-2 rounded;
+    @apply bg-[var(--button-bg)] hover:bg-[var(--button-hover)] text-[var(--button-text)] px-4 py-2.5 rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md;
   }
 
   /*  card */
   .card {
-    @apply bg-[var(--card-bg)] border-[var(--card-border)] shadow-lg p-4 rounded-lg;
+    @apply bg-[var(--card)] border border-[var(--card-border)] shadow-sm p-6 rounded-xl transition-shadow duration-200 hover:shadow-md;
   }
 
   .card-centered {
-    @apply flex items-center justify-center  min-h-svh pt-[68px];
+    @apply flex items-center justify-center min-h-screen pt-16;
   }
 
   /*  board status colors */
   .status-todo {
-    @apply bg-[var(--status-todo)] text-[var(--foreground)] px-3 py-1 rounded;
+    @apply bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 dark:border-slate-700;
   }
 
   .status-inprogress {
-    @apply bg-[var(--status-inprogress)] text-[var(--foreground)] px-3 py-1 rounded;
+    @apply bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 px-3 py-1.5 rounded-full text-sm font-medium border border-sky-200 dark:border-sky-800;
   }
 
   .status-done {
-    @apply bg-[var(--status-done)] text-[var(--foreground)] px-3 py-1 rounded;
+    @apply bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-full text-sm font-medium border border-emerald-200 dark:border-emerald-800;
   }
 
   .status-blocked {
-    @apply bg-[var(--status-blocked)] text-[var(--foreground)] px-3 py-1 rounded;
+    @apply bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-full text-sm font-medium border border-red-200 dark:border-red-800;
+  }
+
+  /* Priority badges */
+  .priority-low {
+    @apply bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .priority-medium {
+    @apply bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .priority-high {
+    @apply bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .priority-urgent {
+    @apply bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide animate-pulse;
   }
 }

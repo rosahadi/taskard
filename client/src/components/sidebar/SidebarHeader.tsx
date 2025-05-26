@@ -10,14 +10,14 @@ const SidebarHeader = () => {
   );
 
   return (
-    <div className="flex min-h-[68px] w-64 items-center justify-between bg-[--background-quaternary] px-6 pt-3">
+    <div className="flex min-h-[68px] w-64 items-center justify-between bg-[var(--background-quaternary)] border-b border-[var(--border)] px-6 pt-3 pb-3">
       <Logo />
       {!isSidebarCollapsed && (
         <button
-          className="py-3"
+          className="p-2 rounded-lg transition-all duration-200 hover:bg-[var(--background-secondary)] group"
           onClick={() => dispatch(setIsSidebarCollapsed(!isSidebarCollapsed))}
         >
-          <X className="h-5 w-5 text-[--text-primary] hover:text-[--text-secondary]" />
+          <X className="h-5 w-5 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors duration-200" />
         </button>
       )}
     </div>
