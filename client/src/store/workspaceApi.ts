@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// Type definitions
 export interface Workspace {
   id: number;
   name: string;

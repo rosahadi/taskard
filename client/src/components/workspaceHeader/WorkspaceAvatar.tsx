@@ -6,22 +6,23 @@ const WorkspaceAvatar = ({ name, image }: { name: string; image?: string }) => {
 
   if (image) {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[--background-tertiary] overflow-hidden">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--background-tertiary)] border border-[var(--border)] transition-all duration-200 shadow-sm hover:shadow-md overflow-hidden p-0">
         <Image
           src={image}
           alt={name}
           className="w-full h-full object-cover"
-          width={96}
-          height={96}
+          width={40}
+          height={40}
+          referrerPolicy="no-referrer"
         />
       </div>
     );
   }
 
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[--background-tertiary]">
-      <span className="text-lg font-semibold text-[--text-primary]">
-        {firstLetter}
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--background-tertiary)] border border-[var(--border)] transition-all duration-200 shadow-sm hover:shadow-md">
+      <span className="text-sm font-semibold text-[var(--text-primary)]">
+        {firstLetter.toUpperCase()}
       </span>
     </div>
   );

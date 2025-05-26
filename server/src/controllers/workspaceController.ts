@@ -148,7 +148,7 @@ export const updateWorkspace = catchAsync(async (req, res, next) => {
 
   const user = await currentUser(req);
   const { id } = req.params;
-  const { name, image } = req.body;
+  const { name, image, deleteImage } = req.body;
 
   const membership = await prisma.workspaceMember.findFirst({
     where: { workspaceId: parseInt(id), userId: user.id, role: Role.ADMIN },
@@ -162,9 +162,21 @@ export const updateWorkspace = catchAsync(async (req, res, next) => {
       new AppError('You do not have permission to update this workspace', 403)
     );
 
+  const updateData: { name?: string; image?: string | null } = {};
+
+  if (name !== undefined) {
+    updateData.name = name;
+  }
+
+  if (image) {
+    updateData.image = image;
+  } else if (deleteImage === 'true') {
+    updateData.image = null;
+  }
+
   const workspace = await prisma.workspace.update({
     where: { id: parseInt(id) },
-    data: { name, image },
+    data: updateData,
     select: {
       id: true,
       name: true,
@@ -176,7 +188,6 @@ export const updateWorkspace = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ status: 'success', data: workspace });
 });
-
 /**
  * Delete a workspace
  * @route DELETE /api/v1/workspaces/:id

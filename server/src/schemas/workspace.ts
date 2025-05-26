@@ -15,7 +15,7 @@ export const updateWorkspaceSchema = z.object({
     id: z.string().regex(/^\d+$/, 'Invalid workspace ID'),
   }),
   body: z.object({
-    name: z.string().min(1, 'Workspace name is required').trim(),
+    name: z.string().min(1, 'Workspace name is required').trim().optional(),
     image: z.string().optional(),
   }),
 });
