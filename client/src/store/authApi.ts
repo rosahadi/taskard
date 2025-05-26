@@ -25,7 +25,6 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  currentPassword: string;
   password: string;
 }
 

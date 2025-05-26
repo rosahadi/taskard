@@ -34,7 +34,6 @@ const ResetPasswordForm = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      currentPassword: '',
       password: '',
       confirmPassword: '',
     },
@@ -74,7 +73,6 @@ const ResetPasswordForm = () => {
       await resetPassword({
         token: token as string,
         body: {
-          currentPassword: data.currentPassword,
           password: data.password,
         },
       }).unwrap();
@@ -105,19 +103,6 @@ const ResetPasswordForm = () => {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="currentPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Current Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <FormField
             control={form.control}
             name="password"
